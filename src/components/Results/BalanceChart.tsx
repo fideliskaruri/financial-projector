@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Milestone, MonthlyRow } from "@/engine/types"
 import { monthYearToString } from "@/data/defaults"
+import type { Milestone, MonthlyRow } from "@/engine/types"
 import { motion } from "motion/react"
 import {
   CartesianGrid,
@@ -17,16 +17,33 @@ import {
 
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 const currencyCompact = new Intl.NumberFormat("en-KE", { notation: "compact", maximumFractionDigits: 1 })
+const comparisonColors = ["var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"]
+
+export interface BalanceChartSeries {
+  name: string
+  rows: MonthlyRow[]
+}
 
 interface BalanceChartProps {
   rows: MonthlyRow[]
   milestones?: Milestone[]
   comparisonRows?: MonthlyRow[]
+  comparisonSeries?: BalanceChartSeries[]
 }
 
-export default function BalanceChart({ rows, milestones = [], comparisonRows }: BalanceChartProps) {
-  const comparisonMap = new Map(comparisonRows?.map((row) => [row.dateStr, row.endBalance]) ?? [])
-  const data = rows.map((row) => ({ date: row.dateStr, baseline: row.endBalance, comparison: comparisonMap.get(row.dateStr) }))
+export default function BalanceChart({ rows, milestones = [], comparisonRows, comparisonSeries }: BalanceChartProps) {
+  const series = comparisonSeries ?? (comparisonRows ? [{ name: "Lean scenario", rows: comparisonRows }] : [])
+  const normalizedSeries = series.map((entry, index) => ({ ...entry, key: `comparison-${index}` }))
+  const seriesMaps = normalizedSeries.map((entry) => [entry.key, new Map(entry.rows.map((row) => [row.dateStr, row.endBalance]))] as const)
+  const data = rows.map((row) => {
+    const nextRow: Record<string, number | string | undefined> = { date: row.dateStr, baseline: row.endBalance }
+
+    for (const [key, valueMap] of seriesMaps) {
+      nextRow[key] = valueMap.get(row.dateStr)
+    }
+
+    return nextRow
+  })
 
   return (
     <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
@@ -34,11 +51,13 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows }: 
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Balance trajectory</CardTitle>
-            <CardDescription>Projected closing balance by month, including equity and bonus events.</CardDescription>
+            <CardDescription>Projected closing balance by month, including equity, bonuses, and saved scenario overlays.</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">Baseline</Badge>
-            {comparisonRows ? <Badge variant="outline">Lean spending overlay</Badge> : null}
+            <Badge variant="secondary">Current</Badge>
+            {normalizedSeries.map((entry) => (
+              <Badge key={entry.key} variant="outline">{entry.name}</Badge>
+            ))}
           </div>
         </CardHeader>
         <CardContent>
@@ -56,7 +75,7 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows }: 
                 />
                 <Tooltip
                   contentStyle={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 16 }}
-                  formatter={(value, name) => [currency.format(Number(value ?? 0)), name === "comparison" ? "Lean scenario" : "Baseline"]}
+                  formatter={(value, name) => [currency.format(Number(value ?? 0)), String(name)]}
                 />
                 <Legend />
                 {milestones
@@ -69,10 +88,19 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows }: 
                       strokeDasharray="4 4"
                     />
                   ))}
-                <Line type="monotone" dataKey="baseline" name="Baseline" stroke="var(--color-chart-1)" strokeWidth={3} dot={false} />
-                {comparisonRows ? (
-                  <Line type="monotone" dataKey="comparison" name="Lean scenario" stroke="var(--color-chart-2)" strokeWidth={3} dot={false} />
-                ) : null}
+                <Line type="monotone" dataKey="baseline" name="Current" stroke="var(--color-chart-1)" strokeWidth={3} dot={false} />
+                {normalizedSeries.map((entry, index) => (
+                  <Line
+                    key={entry.key}
+                    type="monotone"
+                    dataKey={entry.key}
+                    name={entry.name}
+                    stroke={comparisonColors[index % comparisonColors.length]}
+                    strokeDasharray="6 4"
+                    strokeWidth={2.5}
+                    dot={false}
+                  />
+                ))}
               </LineChart>
             </ResponsiveContainer>
           </div>

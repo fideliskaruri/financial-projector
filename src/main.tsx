@@ -10,3 +10,9 @@ createRoot(document.getElementById("root")!).render(
     <Toaster position="top-right" richColors closeButton />
   </StrictMode>,
 )
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/financial-projector/sw.js")
+  })
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Financial Projector",
+  "short_name": "FinProj",
+  "description": "MMF balance projection tool",
+  "start_url": "/financial-projector/",
+  "display": "standalone",
+  "background_color": "#0d0f1a",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/financial-projector/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

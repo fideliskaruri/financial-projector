@@ -3,27 +3,25 @@ import OnHireVestsForm from "@/components/InputForm/OnHireVestsForm"
 import OneTimeEventsForm from "@/components/InputForm/OneTimeEventsForm"
 import ProjectionRangeForm from "@/components/InputForm/ProjectionRangeForm"
 import RecurringInflowsForm from "@/components/InputForm/RecurringInflowsForm"
+import SpendingScheduleForm from "@/components/InputForm/SpendingScheduleForm"
 import StockBonusForm from "@/components/InputForm/StockBonusForm"
 import Header from "@/components/Layout/Header"
 import MetricCard from "@/components/Layout/MetricCard"
 import Sidebar from "@/components/Layout/Sidebar"
-import ScenarioToggle from "@/components/ScenarioToggle"
 import BalanceChart from "@/components/Results/BalanceChart"
 import InflowBreakdownChart from "@/components/Results/InflowBreakdownChart"
 import MilestoneMarkers from "@/components/Results/MilestoneMarkers"
 import ProjectionTable from "@/components/Results/ProjectionTable"
 import SummaryCards from "@/components/Results/SummaryCards"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { DEFAULT_INPUTS, LEAN_SPENDING, monthYearToString } from "@/data/defaults"
+import ScenarioManager from "@/components/Scenarios/ScenarioManager"
+import { DEFAULT_INPUTS, monthYearToString } from "@/data/defaults"
 import type { AllInputs } from "@/engine/types"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
 import { useProjection } from "@/hooks/useProjection"
+import { encodeInputsToUrl, decodeInputsFromUrl } from "@/utils/urlEncoding"
 import { AnimatePresence, motion } from "motion/react"
 import { CalendarClock, PiggyBank, TrendingUp, Wallet } from "lucide-react"
-import { useEffect, useMemo, useState, type ComponentProps } from "react"
+import { useEffect, useRef, useState, type ComponentProps } from "react"
 import { toast } from "sonner"
 
 type AppTab = "overview" | "table" | "scenarios" | "settings"
@@ -38,17 +36,30 @@ export default function App() {
   const [inputs, setInputs] = useLocalStorage<AllInputs>("financial-projector-inputs", cloneInputs(DEFAULT_INPUTS))
   const [activeTab, setActiveTab] = useLocalStorage<AppTab>("financial-projector-active-tab", "overview")
   const [darkMode, setDarkMode] = useLocalStorage<boolean>("financial-projector-dark-mode", true)
-  const [comparisonEnabled, setComparisonEnabled] = useState(true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const sharedScenarioLoadedRef = useRef(false)
 
   const projection = useProjection(inputs)
-  const comparisonInputs = useMemo<AllInputs>(() => ({ ...inputs, params: { ...inputs.params, monthlySpending: LEAN_SPENDING } }), [inputs])
-  const comparisonProjection = useProjection(comparisonInputs)
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode)
     document.documentElement.style.colorScheme = darkMode ? "dark" : "light"
   }, [darkMode])
+
+  useEffect(() => {
+    if (sharedScenarioLoadedRef.current) {
+      return
+    }
+
+    sharedScenarioLoadedRef.current = true
+
+    const decodedInputs = decodeInputsFromUrl(window.location.hash)
+
+    if (decodedInputs) {
+      setInputs(decodedInputs)
+      toast.success("Loaded shared scenario")
+    }
+  }, [setInputs])
 
   const finalRow = projection.rows.at(-1)
   const totalInterest = projection.rows.reduce((sum, row) => sum + row.interest, 0)
@@ -77,6 +88,23 @@ export default function App() {
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
     toast.success("Projection exported as CSV")
+  }
+
+  const handleShare = async () => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}${encodeInputsToUrl(inputs)}`
+
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success("Link copied to clipboard")
+    } catch {
+      const fallbackInput = document.createElement("input")
+      fallbackInput.value = shareUrl
+      document.body.appendChild(fallbackInput)
+      fallbackInput.select()
+      document.execCommand("copy")
+      document.body.removeChild(fallbackInput)
+      toast.success("Link copied to clipboard")
+    }
   }
 
   const metricCards: ComponentProps<typeof MetricCard>[] = [
@@ -128,6 +156,7 @@ export default function App() {
           darkMode={darkMode}
           onExport={handleExport}
           onReset={handleReset}
+          onShare={handleShare}
           onToggleDarkMode={() => {
             setDarkMode((value) => !value)
             toast.info(darkMode ? "Light mode enabled" : "Dark mode enabled")
@@ -162,35 +191,12 @@ export default function App() {
             ) : null}
 
             {activeTab === "scenarios" ? (
-              <motion.div key="scenarios" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
-                <ScenarioToggle
-                  comparisonEnabled={comparisonEnabled}
-                  onToggle={() => {
-                    const nextValue = !comparisonEnabled
-                    setComparisonEnabled(nextValue)
-                    toast.info(nextValue ? "Lean scenario overlay enabled" : "Lean scenario overlay hidden")
-                  }}
-                  baselineResult={projection}
-                  comparisonResult={comparisonProjection}
+              <motion.div key="scenarios" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }}>
+                <ScenarioManager
+                  inputs={inputs}
+                  onLoadScenario={(loadedInputs) => setInputs(loadedInputs)}
+                  onOpenSettings={() => setActiveTab("settings")}
                 />
-                <BalanceChart rows={projection.rows} milestones={projection.milestones} comparisonRows={comparisonEnabled ? comparisonProjection.rows : undefined} />
-                <Card className="border-border/70 bg-card/85 backdrop-blur">
-                  <CardHeader>
-                    <CardTitle>Scenario notes</CardTitle>
-                    <CardDescription>Use the lean scenario to understand the effect of lowering monthly spending to the configured lean target.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="secondary">Baseline spending: {currency.format(inputs.params.monthlySpending)}</Badge>
-                        <Badge variant="outline">Lean spending: {currency.format(LEAN_SPENDING)}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">Keep baseline assumptions intact while visualizing a lower-spend operating mode.</p>
-                    </div>
-                    <Separator orientation="vertical" className="hidden h-12 md:block" />
-                    <Button type="button" variant="outline" onClick={() => setActiveTab("settings")}>Adjust settings</Button>
-                  </CardContent>
-                </Card>
               </motion.div>
             ) : null}
 
@@ -209,7 +215,13 @@ export default function App() {
                   <OnHireVestsForm vests={inputs.onHireVests} onChange={(onHireVests) => setInputs((current) => ({ ...current, onHireVests }))} />
                   <StockBonusForm stockGrants={inputs.stockGrants} onChange={(stockGrants) => setInputs((current) => ({ ...current, stockGrants }))} />
                 </div>
-                <OneTimeEventsForm events={inputs.oneTimeEvents} onChange={(oneTimeEvents) => setInputs((current) => ({ ...current, oneTimeEvents }))} />
+                <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
+                  <OneTimeEventsForm events={inputs.oneTimeEvents} onChange={(oneTimeEvents) => setInputs((current) => ({ ...current, oneTimeEvents }))} />
+                  <SpendingScheduleForm
+                    overrides={inputs.spendingOverrides}
+                    onChange={(spendingOverrides) => setInputs((current) => ({ ...current, spendingOverrides }))}
+                  />
+                </div>
               </motion.div>
             ) : null}
           </AnimatePresence>

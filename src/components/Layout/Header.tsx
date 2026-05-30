@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AnimatePresence, motion } from "motion/react"
-import { Download, Moon, RotateCcw, Sun } from "lucide-react"
+import { Download, Moon, RotateCcw, Share2, Sun } from "lucide-react"
 
 type AppTab = "overview" | "table" | "scenarios" | "settings"
 
@@ -17,11 +17,12 @@ interface HeaderProps {
   darkMode: boolean
   onExport: () => void
   onReset: () => void
+  onShare: () => void
   onToggleDarkMode: () => void
   onTabChange: (tab: AppTab) => void
 }
 
-export default function Header({ activeTab, darkMode, onExport, onReset, onToggleDarkMode, onTabChange }: HeaderProps) {
+export default function Header({ activeTab, darkMode, onExport, onReset, onShare, onToggleDarkMode, onTabChange }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-border/70 bg-background/85 backdrop-blur">
       <div className="px-4 pb-4 pt-4 sm:px-6 lg:px-8 lg:pl-80">
@@ -51,6 +52,10 @@ export default function Header({ activeTab, darkMode, onExport, onReset, onToggl
             <Button type="button" variant="outline" size="sm" onClick={onReset}>
               <RotateCcw className="h-4 w-4" />
               Reset
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={onShare}>
+              <Share2 className="h-4 w-4" />
+              Share
             </Button>
             <Button type="button" variant="secondary" size="sm" onClick={onExport}>
               <Download className="h-4 w-4" />
