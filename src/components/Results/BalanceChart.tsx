@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone, MonthlyRow } from "@/engine/types"
 import { motion } from "motion/react"
@@ -46,13 +46,10 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
   })
 
   return (
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+      <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>Balance trajectory</CardTitle>
-            <CardDescription>Projected closing balance by month.</CardDescription>
-          </div>
+          <CardTitle>Balance trajectory</CardTitle>
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">Current</Badge>
             {normalizedSeries.map((entry) => (

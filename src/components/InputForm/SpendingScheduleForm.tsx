@@ -49,8 +49,8 @@ export default function SpendingScheduleForm({ overrides, onChange }: SpendingSc
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.18 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.18 }}>
+      <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Spending schedule</CardTitle>
@@ -68,7 +68,7 @@ export default function SpendingScheduleForm({ overrides, onChange }: SpendingSc
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.04 }}
-              className="grid gap-4 rounded-2xl border border-border/70 p-4 md:grid-cols-[auto,1fr,1fr,1fr,auto] md:items-end"
+              className="grid gap-4 rounded-2xl border p-4 md:grid-cols-[auto,1fr,1fr,1fr,auto] md:items-end"
             >
               <Badge variant="secondary" className="w-fit">Step {index + 1}</Badge>
               <label className="space-y-2 text-sm">

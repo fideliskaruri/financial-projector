@@ -100,7 +100,7 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
   return (
     <>
       {!hideFloatingTrigger ? (
-        <motion.div className="fixed bottom-6 right-6 z-30" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div className="fixed bottom-6 right-6 z-30" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
           <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={openDialog} disabled={categories.length === 0}>
             <Plus className="h-5 w-5" />
           </Button>
@@ -116,19 +116,18 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setDialogOpen(false)}
             />
             <motion.div
-              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border border-border/70 bg-card p-6 shadow-2xl"
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border bg-card p-6 shadow-2xl"
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">{dialogTitle}</h3>
-                  <p className="text-sm text-muted-foreground">Quick entry</p>
-                </div>
+                <h3 className="text-lg font-semibold">{dialogTitle}</h3>
                 <Button
                   type="button"
                   variant="ghost"

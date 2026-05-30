@@ -15,8 +15,8 @@ export default function FixedParamsForm({ params, onChange }: FixedParamsFormPro
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+      <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Core assumptions</CardTitle>
           <CardDescription>Adjust income, spending, and interest.</CardDescription>

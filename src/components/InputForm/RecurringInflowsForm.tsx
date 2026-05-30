@@ -55,8 +55,8 @@ export default function RecurringInflowsForm({ inflows, onChange }: RecurringInf
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.06 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.06 }}>
+      <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Recurring inflows</CardTitle>
@@ -75,7 +75,7 @@ export default function RecurringInflowsForm({ inflows, onChange }: RecurringInf
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.04 }}
-              className="space-y-4 rounded-2xl border border-border/70 p-4"
+              className="space-y-4 rounded-2xl border p-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Badge variant="secondary">Inflow {index + 1}</Badge>

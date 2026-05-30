@@ -27,14 +27,14 @@ interface ProjectionRangeFormProps {
 
 export default function ProjectionRangeForm({ startDate, endDate, onChange }: ProjectionRangeFormProps) {
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.03 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.03 }}>
+      <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Projection range</CardTitle>
           <CardDescription>Forecast period.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-border/70 p-4">
+          <div className="rounded-xl border p-4">
             <p className="mb-3 text-sm font-medium text-muted-foreground">Start date</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <Select value={startDate.month} onChange={(event) => onChange({ startDate: { ...startDate, month: Number(event.target.value) }, endDate })}>
@@ -46,7 +46,7 @@ export default function ProjectionRangeForm({ startDate, endDate, onChange }: Pr
             </div>
           </div>
 
-          <div className="rounded-xl border border-border/70 p-4">
+          <div className="rounded-xl border p-4">
             <p className="mb-3 text-sm font-medium text-muted-foreground">End date</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <Select value={endDate.month} onChange={(event) => onChange({ startDate, endDate: { ...endDate, month: Number(event.target.value) } })}>

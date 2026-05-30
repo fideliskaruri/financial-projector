@@ -21,8 +21,8 @@ export default function ScenarioToggle({ comparisonEnabled, onToggle, baselineRe
   const delta = comparisonEnd - baselineEnd
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+      <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Scenario comparison</CardTitle>
@@ -33,11 +33,11 @@ export default function ScenarioToggle({ comparisonEnabled, onToggle, baselineRe
           </Button>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-border/70 p-4">
+          <div className="rounded-2xl border p-4">
             <p className="text-sm text-muted-foreground">Baseline end balance</p>
             <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(baselineEnd)}</p>
           </div>
-          <div className="rounded-2xl border border-border/70 p-4">
+          <div className="rounded-2xl border p-4">
             <p className="text-sm text-muted-foreground">Lean scenario end balance</p>
             <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(comparisonEnd)}</p>
           </div>

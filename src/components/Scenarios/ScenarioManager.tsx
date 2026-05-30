@@ -106,9 +106,9 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
   const leanDelta = leanEndBalance - currentEndBalance
 
   return (
-    <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}>
-        <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <div className="space-y-4">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+        <Card className="border bg-card">
           <CardHeader className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <CardTitle>Scenario manager</CardTitle>
@@ -128,7 +128,7 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
             </div>
           </CardHeader>
           <CardContent className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
-            <div className="rounded-2xl border border-border/70 p-4">
+            <div className="rounded-2xl border p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">Current</Badge>
                 <Badge variant="outline">End balance {currency.format(currentEndBalance)}</Badge>
@@ -169,8 +169,8 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
 
       <BalanceChart rows={currentProjection.rows} milestones={currentProjection.milestones} comparisonSeries={comparisonSeries} />
 
-      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, delay: 0.04 }}>
-        <Card className="border-border/70 bg-card/85 backdrop-blur">
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.04 }}>
+        <Card className="border bg-card">
           <CardHeader>
             <CardTitle>Saved scenarios</CardTitle>
             <CardDescription>Select to compare or load.</CardDescription>

@@ -1,7 +1,7 @@
 import AddTransactionDialog from "@/components/Budget/AddTransactionDialog"
 import CategoryCard from "@/components/Budget/CategoryCard"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { addCategory, useCategories, useMonthSummary, useTransactions } from "@/hooks/useBudget"
@@ -39,10 +39,7 @@ export default function BudgetOverview() {
   const selectedTransactions = useTransactions(month, activeCategoryId)
 
   const selectedCategory = categories.find((category) => category.id === activeCategoryId)
-  const pieData = useMemo(
-    () => summary?.categories.filter((category) => category.spent > 0) ?? [],
-    [summary],
-  )
+  const pieData = useMemo(() => summary?.categories.filter((category) => category.spent > 0) ?? [], [summary])
 
   const handleAddCategory = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -75,45 +72,38 @@ export default function BudgetOverview() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Budget</h2>
-          <p className="text-sm text-muted-foreground">Monthly budget view</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center rounded-xl border border-border/70 bg-card p-1">
-            <Button type="button" variant="ghost" size="icon" onClick={() => setMonth((current) => shiftMonth(current, -1))}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="min-w-36 px-4 text-center text-sm font-medium">{formatMonthLabel(month)}</div>
-            <Button type="button" variant="ghost" size="icon" onClick={() => setMonth((current) => shiftMonth(current, 1))}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <Button type="button" onClick={() => setCategoryDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add Category
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center rounded-xl border bg-card p-1">
+          <Button type="button" variant="ghost" size="icon" onClick={() => setMonth((current) => shiftMonth(current, -1))}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="min-w-36 px-4 text-center text-sm font-medium">{formatMonthLabel(month)}</div>
+          <Button type="button" variant="ghost" size="icon" onClick={() => setMonth((current) => shiftMonth(current, 1))}>
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
+
+        <Button type="button" onClick={() => setCategoryDialogOpen(true)}>
+          <Plus className="h-4 w-4" />
+          Add Category
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-border/70 bg-card/85">
+        <Card className="border bg-card">
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Budgeted</p>
             <p className="mt-2 text-2xl font-semibold tabular-nums">{formatKES(summary?.totalBudgeted ?? 0)}</p>
           </CardContent>
         </Card>
-        <Card className="border-border/70 bg-card/85">
+        <Card className="border bg-card">
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Spent</p>
             <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{formatKES(summary?.totalSpent ?? 0)}</p>
           </CardContent>
         </Card>
-        <Card className="border-border/70 bg-card/85">
+        <Card className="border bg-card">
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Remaining</p>
             <p className={cn("mt-2 text-2xl font-semibold tabular-nums", (summary?.remaining ?? 0) >= 0 ? "text-emerald-500" : "text-destructive")}>
@@ -123,8 +113,8 @@ export default function BudgetOverview() {
         </Card>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.25fr,0.75fr]">
-        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),320px]">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(summary?.categories ?? []).map((categorySummary) => (
             <CategoryCard
               key={categorySummary.categoryId}
@@ -135,16 +125,15 @@ export default function BudgetOverview() {
           ))}
         </div>
 
-        <Card className="border-border/70 bg-card/85">
+        <Card className="border bg-card">
           <CardHeader>
             <CardTitle>Spending mix</CardTitle>
-            <CardDescription>{formatMonthLabel(month)}</CardDescription>
           </CardHeader>
-          <CardContent className="h-[320px]">
+          <CardContent className="h-[280px]">
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={pieData} dataKey="spent" nameKey="category.name" innerRadius={70} outerRadius={110} paddingAngle={3}>
+                  <Pie data={pieData} dataKey="spent" nameKey="category.name" innerRadius={64} outerRadius={100} paddingAngle={3}>
                     {pieData.map((entry) => (
                       <Cell key={entry.categoryId} fill={entry.category?.color ?? "#6366f1"} />
                     ))}
@@ -153,7 +142,7 @@ export default function BudgetOverview() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-border/70 text-sm text-muted-foreground">
+              <div className="flex h-full items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground">
                 No spending yet
               </div>
             )}
@@ -161,10 +150,10 @@ export default function BudgetOverview() {
         </Card>
       </div>
 
-      <Card className="border-border/70 bg-card/85">
-        <CardHeader>
+      <Card className="border bg-card">
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle>{selectedCategory?.name ?? "Transactions"}</CardTitle>
-          <CardDescription>{formatMonthLabel(month)}</CardDescription>
+          <span className="text-sm text-muted-foreground">{formatMonthLabel(month)}</span>
         </CardHeader>
         <CardContent>
           {selectedTransactions.length > 0 ? (
@@ -172,7 +161,7 @@ export default function BudgetOverview() {
               {selectedTransactions.map((transaction) => {
                 const Icon = categoryIcons[selectedCategory?.icon ?? "Wallet"] ?? categoryIcons.Wallet
                 return (
-                  <div key={transaction.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3">
+                  <div key={transaction.id} className="flex items-center justify-between gap-3 rounded-xl border bg-background px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${selectedCategory?.color ?? "#64748b"}1A`, color: selectedCategory?.color ?? "#64748b" }}>
                         <Icon className="h-4 w-4" />
@@ -188,7 +177,7 @@ export default function BudgetOverview() {
               })}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-border/70 px-4 py-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
               No transactions
             </div>
           )}
@@ -206,19 +195,18 @@ export default function BudgetOverview() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
               onClick={() => setCategoryDialogOpen(false)}
             />
             <motion.div
-              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border border-border/70 bg-card p-6 shadow-2xl"
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border bg-card p-6 shadow-2xl"
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.98 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Add category</h3>
-                  <p className="text-sm text-muted-foreground">Budget setup</p>
-                </div>
+                <h3 className="text-lg font-semibold">Add category</h3>
                 <Button type="button" variant="ghost" size="icon" onClick={() => setCategoryDialogOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>

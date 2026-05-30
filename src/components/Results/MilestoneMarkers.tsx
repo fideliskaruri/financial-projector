@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Milestone } from "@/engine/types"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { monthYearToString } from "@/data/defaults"
+import type { Milestone } from "@/engine/types"
 import { motion } from "motion/react"
 import { Flag, Target } from "lucide-react"
 
@@ -13,15 +13,14 @@ interface MilestoneMarkersProps {
 
 export default function MilestoneMarkers({ milestones }: MilestoneMarkersProps) {
   return (
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.08 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.06 }}>
+      <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Milestones</CardTitle>
-          <CardDescription>Balance targets.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {milestones.map((milestone) => (
-            <div key={milestone.name} className="flex flex-col gap-3 rounded-2xl border border-border/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div key={milestone.name} className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-start gap-3">
                 <div className="rounded-xl bg-primary/10 p-2 text-primary">
                   {milestone.reachedDate ? <Flag className="h-4 w-4" /> : <Target className="h-4 w-4" />}

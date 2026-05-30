@@ -18,8 +18,8 @@ export default function OneTimeEventsForm({ events, onChange }: OneTimeEventsFor
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.15 }}>
+      <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>One-time events</CardTitle>
@@ -53,7 +53,7 @@ export default function OneTimeEventsForm({ events, onChange }: OneTimeEventsFor
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.04 }}
-              className="grid gap-4 rounded-2xl border border-border/70 p-4 md:grid-cols-[1.4fr,1fr,0.8fr,0.9fr,0.9fr,auto] md:items-end"
+              className="grid gap-4 rounded-2xl border p-4 md:grid-cols-[1.4fr,1fr,0.8fr,0.9fr,0.9fr,auto] md:items-end"
             >
               <div className="space-y-2">
                 <Badge variant={event.isOutflow ? "warning" : "success"} className="w-fit">{event.isOutflow ? "Expense" : "Inflow"}</Badge>

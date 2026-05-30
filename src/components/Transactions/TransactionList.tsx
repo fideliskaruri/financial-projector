@@ -64,9 +64,9 @@ export default function TransactionList() {
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="border-border/70 bg-card/85">
-        <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-4">
+      <Card className="border bg-card">
+        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <CardTitle>Transactions</CardTitle>
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative min-w-60 flex-1">
@@ -91,10 +91,10 @@ export default function TransactionList() {
         </CardHeader>
         <CardContent>
           {groupedTransactions.length > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {groupedTransactions.map(([date, dayTransactions]) => (
                 <div key={date} className="space-y-3">
-                  <div className="flex items-center justify-between border-b border-border/70 pb-2">
+                  <div className="flex items-center justify-between border-b pb-2">
                     <h3 className="font-medium">{longDateFormatter.format(new Date(date))}</h3>
                     <span className="text-sm text-muted-foreground">{dayTransactions.length} items</span>
                   </div>
@@ -104,7 +104,7 @@ export default function TransactionList() {
                       const Icon = categoryIcons[category?.icon ?? "Wallet"] ?? categoryIcons.Wallet
 
                       return (
-                        <motion.div key={transaction.id} layout className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-background/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                        <motion.div key={transaction.id} layout transition={{ duration: 0.15 }} className="flex flex-col gap-3 rounded-xl border bg-background px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl" style={{ backgroundColor: `${category?.color ?? "#64748b"}1A`, color: category?.color ?? "#64748b" }}>
                               <Icon className="h-5 w-5" />
@@ -113,8 +113,6 @@ export default function TransactionList() {
                               <p className="font-medium">{transaction.description}</p>
                               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                 <span>{category?.name ?? "Unassigned"}</span>
-                                <span>•</span>
-                                <span>{transaction.date}</span>
                               </div>
                             </div>
                           </div>
@@ -136,7 +134,7 @@ export default function TransactionList() {
               ))}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-border/70 px-4 py-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
               No transactions found
             </div>
           )}

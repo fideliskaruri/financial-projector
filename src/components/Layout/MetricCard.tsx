@@ -20,12 +20,12 @@ export default function MetricCard({ label, value, icon: Icon, trend, helper, cl
   const TrendIcon = direction === "up" ? ArrowUpRight : direction === "down" ? ArrowDownRight : MoveRight
 
   return (
-    <Card className={cn("border-border/70 bg-card/85 backdrop-blur", className)}>
-      <CardContent className="space-y-4 p-6">
+    <Card className={cn("border bg-card", className)}>
+      <CardContent className="space-y-3 p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-muted-foreground">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">{value}</p>
+            <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums sm:text-4xl">{value}</p>
           </div>
           {Icon ? (
             <div className="rounded-xl bg-primary/10 p-3 text-primary">

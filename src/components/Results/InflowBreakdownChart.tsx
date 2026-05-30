@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MonthlyRow } from "@/engine/types"
 import { motion } from "motion/react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
@@ -32,14 +32,11 @@ export default function InflowBreakdownChart({ rows }: InflowBreakdownChartProps
   })
 
   return (
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.04 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.03 }}>
+      <Card className="border bg-card">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle>Inflow breakdown</CardTitle>
-              <CardDescription>Monthly inflow breakdown.</CardDescription>
-            </div>
+            <CardTitle>Inflow breakdown</CardTitle>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">Salary</Badge>
               <Badge variant="outline">ESPP</Badge>

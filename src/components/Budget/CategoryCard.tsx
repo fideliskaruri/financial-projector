@@ -17,7 +17,7 @@ export default function CategoryCard({ summary, selected = false, onClick }: Cat
 
   return (
     <motion.button type="button" whileHover={{ y: -3 }} whileTap={{ scale: 0.99 }} onClick={onClick} className="text-left">
-      <Card className={cn("h-full border-border/70 bg-card/85 transition-colors", selected && "border-primary/50 bg-primary/5")}>
+      <Card className={cn("h-full border bg-card transition-colors", selected && "border-primary/50 bg-primary/5")}>
         <CardContent className="space-y-4 p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">

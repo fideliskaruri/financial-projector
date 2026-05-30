@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
@@ -34,11 +34,7 @@ export default function BillsOverview() {
     [monthTransactions],
   )
 
-  const dueThisMonth = useMemo(
-    () => bills.filter((bill) => isBillDueInMonth(bill, month)),
-    [bills, month],
-  )
-
+  const dueThisMonth = useMemo(() => bills.filter((bill) => isBillDueInMonth(bill, month)), [bills, month])
   const dueTotal = dueThisMonth.reduce((sum, bill) => sum + bill.amount, 0)
 
   const handleAddBill = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -87,12 +83,8 @@ export default function BillsOverview() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Bills</h2>
-          <p className="text-sm text-muted-foreground">Recurring payments</p>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-end">
         <Button type="button" onClick={() => setBillDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Bill
@@ -100,13 +92,13 @@ export default function BillsOverview() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-border/70 bg-card/85">
+        <Card className="border bg-card">
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Due this month</p>
             <p className="mt-2 text-2xl font-semibold">{dueThisMonth.length} bills</p>
           </CardContent>
         </Card>
-        <Card className="border-border/70 bg-card/85">
+        <Card className="border bg-card">
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground">Total this month</p>
             <p className="mt-2 text-2xl font-semibold tabular-nums">{formatKES(dueTotal)}</p>
@@ -114,7 +106,7 @@ export default function BillsOverview() {
         </Card>
       </div>
 
-      <Card className="border-border/70 bg-card/85">
+      <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Recurring bills</CardTitle>
         </CardHeader>
@@ -126,10 +118,10 @@ export default function BillsOverview() {
                 const paid = paidBillIds.has(bill.id)
                 const nextDue = getNextDueDate(bill)
                 const proximity = daysUntil(nextDue)
-                const tone = paid ? "border-emerald-500/30 bg-emerald-500/5" : proximity < 0 ? "border-destructive/40 bg-destructive/5" : proximity <= 5 ? "border-amber-500/40 bg-amber-500/5" : "border-border/70 bg-background/70"
+                const tone = paid ? "border-emerald-500/30 bg-emerald-500/5" : proximity < 0 ? "border-destructive/40 bg-destructive/5" : proximity <= 5 ? "border-amber-500/40 bg-amber-500/5" : "border bg-background"
 
                 return (
-                  <motion.div key={bill.id} layout className={cn("flex flex-col gap-4 rounded-2xl border px-4 py-4 lg:flex-row lg:items-center lg:justify-between", tone)}>
+                  <motion.div key={bill.id} layout transition={{ duration: 0.15 }} className={cn("flex flex-col gap-3 rounded-xl px-4 py-3 lg:flex-row lg:items-center lg:justify-between", tone)}>
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-medium">{bill.name}</h3>
@@ -160,7 +152,7 @@ export default function BillsOverview() {
               })}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-border/70 px-4 py-10 text-center text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
               No bills yet
             </div>
           )}
@@ -170,13 +162,24 @@ export default function BillsOverview() {
       <AnimatePresence>
         {billDialogOpen ? (
           <>
-            <motion.button type="button" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setBillDialogOpen(false)} />
-            <motion.div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border border-border/70 bg-card p-6 shadow-2xl" initial={{ opacity: 0, y: 20, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }}>
+            <motion.button
+              type="button"
+              className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              onClick={() => setBillDialogOpen(false)}
+            />
+            <motion.div
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border bg-card p-6 shadow-2xl"
+              initial={{ opacity: 0, y: 16, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+            >
               <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">Add bill</h3>
-                  <p className="text-sm text-muted-foreground">Recurring payment</p>
-                </div>
+                <h3 className="text-lg font-semibold">Add bill</h3>
                 <Button type="button" variant="ghost" size="icon" onClick={() => setBillDialogOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>

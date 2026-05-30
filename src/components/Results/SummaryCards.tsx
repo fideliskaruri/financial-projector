@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { YearlySummary } from "@/engine/types"
 import { motion } from "motion/react"
 
@@ -11,20 +11,17 @@ interface SummaryCardsProps {
 
 export default function SummaryCards({ yearlySummaries }: SummaryCardsProps) {
   return (
-    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.12 }}>
-      <Card className="border-border/70 bg-card/85 backdrop-blur">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.09 }}>
+      <Card className="border bg-card">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <CardTitle>Yearly summaries</CardTitle>
-              <CardDescription>Year-end checkpoints.</CardDescription>
-            </div>
+            <CardTitle>Yearly summaries</CardTitle>
             <Badge variant="secondary">{yearlySummaries.length} years</Badge>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {yearlySummaries.map((summary) => (
-            <div key={summary.year} className="rounded-2xl border border-border/70 p-4">
+            <div key={summary.year} className="rounded-xl border bg-background p-4">
               <p className="text-sm font-medium text-muted-foreground">{summary.year}</p>
               <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(summary.endBalance)}</p>
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">
