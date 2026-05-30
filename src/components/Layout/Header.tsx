@@ -1,14 +1,15 @@
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type { AppTab } from "@/types/navigation"
 import { motion } from "motion/react"
 import { Download, Moon, RotateCcw, Share2, Sun } from "lucide-react"
 
-type AppTab = "overview" | "table" | "scenarios" | "settings"
-
 const tabItems: { id: AppTab; label: string }[] = [
-  { id: "overview", label: "Overview" },
-  { id: "table", label: "Table" },
-  { id: "scenarios", label: "Scenarios" },
+  { id: "dashboard", label: "Dashboard" },
+  { id: "budget", label: "Budget" },
+  { id: "transactions", label: "Transactions" },
+  { id: "bills", label: "Bills" },
+  { id: "projections", label: "Projections" },
   { id: "settings", label: "Settings" },
 ]
 

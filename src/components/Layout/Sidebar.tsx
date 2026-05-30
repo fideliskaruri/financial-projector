@@ -2,19 +2,21 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import type { AppTab } from "@/types/navigation"
 import { AnimatePresence, motion } from "motion/react"
 import {
-  BarChart3,
+  ArrowRightLeft,
+  CalendarRange,
+  CreditCard,
   LayoutDashboard,
   Menu,
+  PiggyBank,
   Settings2,
   Sparkles,
-  TableProperties,
+  TrendingUp,
   X,
   type LucideIcon,
 } from "lucide-react"
-
-type AppTab = "overview" | "table" | "scenarios" | "settings"
 
 type NavItem = {
   id: AppTab
@@ -24,10 +26,12 @@ type NavItem = {
 }
 
 const navItems: NavItem[] = [
-  { id: "overview", label: "Overview", description: "Executive snapshot", icon: LayoutDashboard },
-  { id: "table", label: "Projections", description: "Month-by-month view", icon: TableProperties },
-  { id: "scenarios", label: "Scenarios", description: "Baseline vs lean", icon: BarChart3 },
-  { id: "settings", label: "Settings", description: "Model assumptions", icon: Settings2 },
+  { id: "dashboard", label: "Dashboard", description: "Overview", icon: LayoutDashboard },
+  { id: "budget", label: "Budget", description: "Monthly plan", icon: PiggyBank },
+  { id: "transactions", label: "Transactions", description: "Spending log", icon: ArrowRightLeft },
+  { id: "bills", label: "Bills", description: "Recurring dues", icon: CreditCard },
+  { id: "projections", label: "Projections", description: "Future cashflow", icon: TrendingUp },
+  { id: "settings", label: "Settings", description: "Projection inputs", icon: Settings2 },
 ]
 
 interface SidebarContentProps {
@@ -40,15 +44,13 @@ function SidebarContent({ activeTab, onSelectTab, onClose }: SidebarContentProps
   return (
     <div className="flex h-full flex-col gap-6 p-4">
       <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Spark Dashboard</p>
-              <p className="text-xs text-muted-foreground">Financial Projector</p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">Finance Hub</p>
+            <p className="text-xs text-muted-foreground">Financial Projector</p>
           </div>
         </div>
         {onClose ? (
@@ -60,8 +62,10 @@ function SidebarContent({ activeTab, onSelectTab, onClose }: SidebarContentProps
 
       <Card className="border-border/70 bg-background/70 backdrop-blur">
         <CardContent className="space-y-2 p-3">
-          <Badge variant="secondary" className="w-fit">Data cockpit</Badge>
-          <p className="text-sm font-medium">Navigate across overview, detailed projections, scenarios, and settings.</p>
+          <Badge variant="secondary" className="w-fit">
+            Personal finance
+          </Badge>
+          <p className="text-sm font-medium">Budget, transactions, bills, and projections in one place.</p>
         </CardContent>
       </Card>
 
@@ -79,9 +83,7 @@ function SidebarContent({ activeTab, onSelectTab, onClose }: SidebarContentProps
               }}
               className={cn(
                 "flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors",
-                isActive
-                  ? "border-primary/30 bg-primary/10 text-foreground"
-                  : "border-transparent text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground"
+                isActive ? "border-primary/30 bg-primary/10 text-foreground" : "border-transparent text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground",
               )}
             >
               <div className={cn("mt-0.5 rounded-lg p-2", isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>
@@ -96,7 +98,11 @@ function SidebarContent({ activeTab, onSelectTab, onClose }: SidebarContentProps
         })}
       </nav>
 
-      <div className="mt-auto hidden lg:block">
+      <div className="mt-auto hidden lg:block space-y-2">
+        <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => onSelectTab("projections")}>
+          <CalendarRange className="h-4 w-4" />
+          Open projections
+        </Button>
         <Button type="button" variant="outline" className="w-full justify-start gap-2" onClick={() => onSelectTab("settings")}>
           <Menu className="h-4 w-4" />
           Adjust assumptions

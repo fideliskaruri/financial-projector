@@ -1,3 +1,7 @@
+import BudgetOverview from "@/components/Budget/BudgetOverview"
+import BillsOverview from "@/components/Bills/BillsOverview"
+import BudgetMiniCard from "@/components/Dashboard/BudgetMiniCard"
+import UpcomingBillsCard from "@/components/Dashboard/UpcomingBillsCard"
 import FixedParamsForm from "@/components/InputForm/FixedParamsForm"
 import OnHireVestsForm from "@/components/InputForm/OnHireVestsForm"
 import OneTimeEventsForm from "@/components/InputForm/OneTimeEventsForm"
@@ -14,32 +18,64 @@ import MilestoneMarkers from "@/components/Results/MilestoneMarkers"
 import ProjectionTable from "@/components/Results/ProjectionTable"
 import SummaryCards from "@/components/Results/SummaryCards"
 import ScenarioManager from "@/components/Scenarios/ScenarioManager"
+import TransactionList from "@/components/Transactions/TransactionList"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DEFAULT_INPUTS, monthYearToString } from "@/data/defaults"
 import type { AllInputs } from "@/engine/types"
+import { useBills, useCategories, useMonthSummary } from "@/hooks/useBudget"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
 import { useProjection } from "@/hooks/useProjection"
-import { encodeInputsToUrl, decodeInputsFromUrl } from "@/utils/urlEncoding"
+import { formatKES, getMonthId } from "@/lib/finance"
+import type { AppTab } from "@/types/navigation"
+import { decodeInputsFromUrl, encodeInputsToUrl } from "@/utils/urlEncoding"
 import { AnimatePresence, motion } from "motion/react"
 import { CalendarClock, PiggyBank, TrendingUp, Wallet } from "lucide-react"
 import { useEffect, useRef, useState, type ComponentProps } from "react"
 import { toast } from "sonner"
 
-type AppTab = "overview" | "table" | "scenarios" | "settings"
-
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
+const validTabs: AppTab[] = ["dashboard", "budget", "transactions", "bills", "projections", "settings"]
 
 function cloneInputs(value: AllInputs): AllInputs {
   return JSON.parse(JSON.stringify(value)) as AllInputs
 }
 
+function normalizeTab(value: string): AppTab {
+  if (validTabs.includes(value as AppTab)) {
+    return value as AppTab
+  }
+
+  if (value === "overview") {
+    return "dashboard"
+  }
+
+  if (value === "table" || value === "scenarios") {
+    return "projections"
+  }
+
+  return "dashboard"
+}
+
 export default function App() {
   const [inputs, setInputs] = useLocalStorage<AllInputs>("financial-projector-inputs", cloneInputs(DEFAULT_INPUTS))
-  const [activeTab, setActiveTab] = useLocalStorage<AppTab>("financial-projector-active-tab", "overview")
+  const [storedActiveTab, setStoredActiveTab] = useLocalStorage<string>("financial-projector-active-tab", "dashboard")
   const [darkMode, setDarkMode] = useLocalStorage<boolean>("financial-projector-dark-mode", true)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const sharedScenarioLoadedRef = useRef(false)
 
+  const activeTab = normalizeTab(storedActiveTab)
+  const currentMonth = getMonthId(new Date())
+  const categories = useCategories()
+  const bills = useBills()
+  const monthSummary = useMonthSummary(currentMonth)
   const projection = useProjection(inputs)
+
+  useEffect(() => {
+    if (storedActiveTab !== activeTab) {
+      setStoredActiveTab(activeTab)
+    }
+  }, [activeTab, setStoredActiveTab, storedActiveTab])
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode)
@@ -107,6 +143,8 @@ export default function App() {
     }
   }
 
+  const setActiveTab = (tab: AppTab) => setStoredActiveTab(tab)
+
   const metricCards: ComponentProps<typeof MetricCard>[] = [
     {
       label: "End Balance",
@@ -118,7 +156,7 @@ export default function App() {
       label: "Total Interest",
       value: currency.format(totalInterest),
       icon: TrendingUp,
-      trend: { value: `${((totalInterest / Math.max(finalRow?.endBalance ?? 1, 1)) * 100).toFixed(1)}% of end`, direction: "up" as const },
+      trend: { value: `${((totalInterest / Math.max(finalRow?.endBalance ?? 1, 1)) * 100).toFixed(1)}% of end`, direction: "up" },
     },
     {
       label: "Next Milestone",
@@ -129,7 +167,7 @@ export default function App() {
       label: "Savings Rate",
       value: `${savingsRate.toFixed(0)}%`,
       icon: PiggyBank,
-      trend: { value: currency.format(inputs.params.netSalary - inputs.params.monthlySpending) + "/mo", direction: savingsRate >= 0 ? "up" : "down" },
+      trend: { value: `${currency.format(inputs.params.netSalary - inputs.params.monthlySpending)}/mo`, direction: savingsRate >= 0 ? "up" : "down" },
     },
   ]
 
@@ -162,42 +200,75 @@ export default function App() {
 
         <main className="px-4 py-6 sm:px-6 lg:px-8 lg:pl-80">
           <AnimatePresence mode="wait">
-            {activeTab === "overview" ? (
-              <motion.div key="overview" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
-                <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.08 } } }} className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {activeTab === "dashboard" ? (
+              <motion.div key="dashboard" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
+                <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.08 } } }} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {metricCards.map((metric) => (
                     <motion.div key={metric.label} variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}>
                       <MetricCard {...metric} />
                     </motion.div>
                   ))}
+                  <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}>
+                    <BudgetMiniCard summary={monthSummary} />
+                  </motion.div>
+                  <motion.div variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}>
+                    <UpcomingBillsCard bills={bills} categories={categories} />
+                  </motion.div>
                 </motion.div>
                 <BalanceChart rows={projection.rows} milestones={projection.milestones} />
-                <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
-                  <InflowBreakdownChart rows={projection.rows} />
+                <div className="grid gap-6 xl:grid-cols-[0.9fr,1.1fr]">
                   <MilestoneMarkers milestones={projection.milestones} />
+                  <SummaryCards yearlySummaries={projection.yearlySummaries} />
                 </div>
-                <SummaryCards yearlySummaries={projection.yearlySummaries} />
               </motion.div>
             ) : null}
 
-            {activeTab === "table" ? (
-              <motion.div key="table" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }}>
-                <ProjectionTable rows={projection.rows} />
+            {activeTab === "budget" ? (
+              <motion.div key="budget" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }}>
+                <BudgetOverview />
               </motion.div>
             ) : null}
 
-            {activeTab === "scenarios" ? (
-              <motion.div key="scenarios" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }}>
-                <ScenarioManager
-                  inputs={inputs}
-                  onLoadScenario={(loadedInputs) => setInputs(loadedInputs)}
-                  onOpenSettings={() => setActiveTab("settings")}
-                />
+            {activeTab === "transactions" ? (
+              <motion.div key="transactions" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }}>
+                <TransactionList />
+              </motion.div>
+            ) : null}
+
+            {activeTab === "bills" ? (
+              <motion.div key="bills" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }}>
+                <BillsOverview />
+              </motion.div>
+            ) : null}
+
+            {activeTab === "projections" ? (
+              <motion.div key="projections" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
+                <ScenarioManager inputs={inputs} onLoadScenario={(loadedInputs) => setInputs(loadedInputs)} onOpenSettings={() => setActiveTab("settings")} />
+                <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
+                  <ProjectionTable rows={projection.rows} />
+                  <InflowBreakdownChart rows={projection.rows} />
+                </div>
               </motion.div>
             ) : null}
 
             {activeTab === "settings" ? (
               <motion.div key="settings" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
+                <Card className="border-border/70 bg-card/85">
+                  <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <CardTitle>Projection spending</CardTitle>
+                    </div>
+                    <Badge variant={(monthSummary?.totalSpent ?? 0) > inputs.params.monthlySpending ? "warning" : "success"}>
+                      Actual spending this month: {formatKES(monthSummary?.totalSpent ?? 0)}
+                    </Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Monthly spending in projections: {formatKES(inputs.params.monthlySpending)} (configured manually)
+                    </p>
+                  </CardContent>
+                </Card>
+
                 <div className="grid gap-6 xl:grid-cols-2">
                   <FixedParamsForm params={inputs.params} onChange={(params) => setInputs((current) => ({ ...current, params }))} />
                   <ProjectionRangeForm
@@ -213,10 +284,7 @@ export default function App() {
                 </div>
                 <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
                   <OneTimeEventsForm events={inputs.oneTimeEvents} onChange={(oneTimeEvents) => setInputs((current) => ({ ...current, oneTimeEvents }))} />
-                  <SpendingScheduleForm
-                    overrides={inputs.spendingOverrides}
-                    onChange={(spendingOverrides) => setInputs((current) => ({ ...current, spendingOverrides }))}
-                  />
+                  <SpendingScheduleForm overrides={inputs.spendingOverrides} onChange={(spendingOverrides) => setInputs((current) => ({ ...current, spendingOverrides }))} />
                 </div>
               </motion.div>
             ) : null}
