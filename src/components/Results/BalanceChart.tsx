@@ -1,97 +1,83 @@
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { Milestone, MonthlyRow } from "@/engine/types"
+import { monthYearToString } from "@/data/defaults"
+import { motion } from "motion/react"
 import {
-  LineChart,
+  CartesianGrid,
+  Legend,
   Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from 'recharts';
-import type { MonthlyRow, Milestone } from '../../engine/types';
-import { formatCompact, formatKES } from '../../utils/formatters';
+} from "recharts"
 
-interface Props {
-  rows: MonthlyRow[];
-  milestones: Milestone[];
-  comparisonRows?: MonthlyRow[];
-  comparisonLabel?: string;
+const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
+const currencyCompact = new Intl.NumberFormat("en-KE", { notation: "compact", maximumFractionDigits: 1 })
+
+interface BalanceChartProps {
+  rows: MonthlyRow[]
+  milestones?: Milestone[]
+  comparisonRows?: MonthlyRow[]
 }
 
-export default function BalanceChart({ rows, milestones, comparisonRows }: Props) {
-  const data = rows.map((row, i) => ({
-    name: row.dateStr,
-    balance: Math.round(row.endBalance),
-    ...(comparisonRows ? { comparison: Math.round(comparisonRows[i]?.endBalance ?? 0) } : {}),
-  }));
-
-  const reachedMilestones = milestones.filter((m) => m.reachedDate !== null);
+export default function BalanceChart({ rows, milestones = [], comparisonRows }: BalanceChartProps) {
+  const comparisonMap = new Map(comparisonRows?.map((row) => [row.dateStr, row.endBalance]) ?? [])
+  const data = rows.map((row) => ({ date: row.dateStr, baseline: row.endBalance, comparison: comparisonMap.get(row.dateStr) }))
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Balance Over Time</h3>
-      <ResponsiveContainer width="100%" height={350}>
-        <LineChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
-          <XAxis
-            dataKey="name"
-            tick={{ fontSize: 11 }}
-            interval={2}
-            stroke="#6b7280"
-          />
-          <YAxis
-            tickFormatter={(v: number) => formatCompact(v)}
-            tick={{ fontSize: 11 }}
-            stroke="#6b7280"
-          />
-          <Tooltip
-            formatter={(value) => [
-              formatKES(Number(value ?? 0)),
-            ]}
-            contentStyle={{
-              backgroundColor: 'rgba(17, 24, 39, 0.9)',
-              border: 'none',
-              borderRadius: '8px',
-              color: '#f3f4f6',
-              fontSize: '12px',
-            }}
-          />
-          <Line
-            type="monotone"
-            dataKey="balance"
-            stroke="#3b82f6"
-            strokeWidth={2}
-            dot={false}
-            activeDot={{ r: 4 }}
-          />
-          {comparisonRows && (
-            <Line
-              type="monotone"
-              dataKey="comparison"
-              stroke="#10b981"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
-          )}
-          {reachedMilestones.map((m) => (
-            <ReferenceLine
-              key={m.name}
-              y={m.targetAmount}
-              stroke="#f59e0b"
-              strokeDasharray="3 3"
-              strokeOpacity={0.6}
-              label={{
-                value: m.name,
-                position: 'right',
-                fill: '#f59e0b',
-                fontSize: 10,
-              }}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>Balance trajectory</CardTitle>
+            <CardDescription>Projected closing balance by month, including equity and bonus events.</CardDescription>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="secondary">Baseline</Badge>
+            {comparisonRows ? <Badge variant="outline">Lean spending overlay</Badge> : null}
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[340px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ left: 12, right: 12, top: 8, bottom: 8 }}>
+                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="date" tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} minTickGap={28} />
+                <YAxis
+                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={80}
+                  tickFormatter={(value) => currencyCompact.format(Number(value))}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 16 }}
+                  formatter={(value, name) => [currency.format(Number(value ?? 0)), name === "comparison" ? "Lean scenario" : "Baseline"]}
+                />
+                <Legend />
+                {milestones
+                  .filter((milestone) => milestone.reachedDate)
+                  .map((milestone) => (
+                    <ReferenceLine
+                      key={milestone.name}
+                      x={monthYearToString(milestone.reachedDate!)}
+                      stroke="var(--color-warning)"
+                      strokeDasharray="4 4"
+                    />
+                  ))}
+                <Line type="monotone" dataKey="baseline" name="Baseline" stroke="var(--color-chart-1)" strokeWidth={3} dot={false} />
+                {comparisonRows ? (
+                  <Line type="monotone" dataKey="comparison" name="Lean scenario" stroke="var(--color-chart-2)" strokeWidth={3} dot={false} />
+                ) : null}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }

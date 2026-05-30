@@ -1,104 +1,138 @@
-import { Plus, Trash2 } from 'lucide-react';
-import type { RecurringInflow } from '../../engine/types';
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
+import type { RecurringInflow } from "@/engine/types"
+import { motion } from "motion/react"
+import { Plus, Trash2 } from "lucide-react"
 
-interface Props {
-  inflows: RecurringInflow[];
-  onChange: (inflows: RecurringInflow[]) => void;
+const monthOptions = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+const presetMonths: Record<RecurringInflow["frequency"], number[]> = {
+  monthly: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+  quarterly: [3, 6, 9, 12],
+  annual: [8],
+  custom: [],
 }
 
-const MONTH_OPTIONS = [
-  { value: 1, label: 'Jan' }, { value: 2, label: 'Feb' }, { value: 3, label: 'Mar' },
-  { value: 4, label: 'Apr' }, { value: 5, label: 'May' }, { value: 6, label: 'Jun' },
-  { value: 7, label: 'Jul' }, { value: 8, label: 'Aug' }, { value: 9, label: 'Sep' },
-  { value: 10, label: 'Oct' }, { value: 11, label: 'Nov' }, { value: 12, label: 'Dec' },
-];
+interface RecurringInflowsFormProps {
+  inflows: RecurringInflow[]
+  onChange: (inflows: RecurringInflow[]) => void
+}
 
-export default function RecurringInflowsForm({ inflows, onChange }: Props) {
+export default function RecurringInflowsForm({ inflows, onChange }: RecurringInflowsFormProps) {
+  const updateInflow = (id: string, updates: Partial<RecurringInflow>) => {
+    onChange(inflows.map((inflow) => (inflow.id === id ? { ...inflow, ...updates } : inflow)))
+  }
+
   const addInflow = () => {
     onChange([
       ...inflows,
       {
         id: `inflow-${Date.now()}`,
-        name: '',
+        name: "New inflow",
         amount: 0,
-        frequency: 'annual',
+        frequency: "custom",
         months: [],
       },
-    ]);
-  };
+    ])
+  }
 
   const removeInflow = (id: string) => {
-    onChange(inflows.filter((i) => i.id !== id));
-  };
-
-  const updateInflow = (id: string, field: string, value: unknown) => {
-    onChange(
-      inflows.map((i) => (i.id === id ? { ...i, [field]: value } : i)),
-    );
-  };
+    onChange(inflows.filter((inflow) => inflow.id !== id))
+  }
 
   const toggleMonth = (id: string, month: number) => {
-    const inflow = inflows.find((i) => i.id === id)!;
-    const months = inflow.months.includes(month)
-      ? inflow.months.filter((m) => m !== month)
-      : [...inflow.months, month].sort((a, b) => a - b);
-    updateInflow(id, 'months', months);
-  };
+    onChange(
+      inflows.map((inflow) => {
+        if (inflow.id !== id) return inflow
+        const months = inflow.months.includes(month) ? inflow.months.filter((value) => value !== month) : [...inflow.months, month].sort((a, b) => a - b)
+        return { ...inflow, months }
+      })
+    )
+  }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-          Recurring Inflows
-        </h3>
-        <button
-          onClick={addInflow}
-          className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-        >
-          <Plus size={14} /> Add
-        </button>
-      </div>
-      {inflows.map((inflow) => (
-        <div key={inflow.id} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-2">
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Name"
-              value={inflow.name}
-              onChange={(e) => updateInflow(inflow.id, 'name', e.target.value)}
-              className="flex-1 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            />
-            <input
-              type="number"
-              placeholder="Amount"
-              value={inflow.amount || ''}
-              onChange={(e) => updateInflow(inflow.id, 'amount', Number(e.target.value))}
-              className="w-32 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            />
-            <button
-              onClick={() => removeInflow(inflow.id)}
-              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.06 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>Recurring inflows</CardTitle>
+            <CardDescription>Add salary-adjacent inflows such as ESPP, cash bonuses, or stipends.</CardDescription>
+          </div>
+          <Button type="button" size="sm" onClick={addInflow}>
+            <Plus className="h-4 w-4" />
+            Add inflow
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {inflows.length === 0 ? <p className="text-sm text-muted-foreground">No recurring inflows configured.</p> : null}
+          {inflows.map((inflow, index) => (
+            <motion.div
+              key={inflow.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04 }}
+              className="space-y-4 rounded-2xl border border-border/70 p-4"
             >
-              <Trash2 size={14} />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {MONTH_OPTIONS.map((m) => (
-              <button
-                key={m.value}
-                onClick={() => toggleMonth(inflow.id, m.value)}
-                className={`px-2 py-0.5 text-xs rounded-full transition-colors ${
-                  inflow.months.includes(m.value)
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600'
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <Badge variant="secondary">Inflow {index + 1}</Badge>
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeInflow(inflow.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                <label className="space-y-2 text-sm">
+                  <span className="font-medium text-muted-foreground">Name</span>
+                  <Input value={inflow.name} onChange={(event) => updateInflow(inflow.id, { name: event.target.value })} />
+                </label>
+                <label className="space-y-2 text-sm">
+                  <span className="font-medium text-muted-foreground">Amount</span>
+                  <Input type="number" value={inflow.amount} onChange={(event) => updateInflow(inflow.id, { amount: Number(event.target.value) })} />
+                </label>
+                <label className="space-y-2 text-sm">
+                  <span className="font-medium text-muted-foreground">Frequency</span>
+                  <Select
+                    value={inflow.frequency}
+                    onChange={(event) => {
+                      const frequency = event.target.value as RecurringInflow["frequency"]
+                      updateInflow(inflow.id, { frequency, months: presetMonths[frequency] })
+                    }}
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="annual">Annual</option>
+                    <option value="custom">Custom</option>
+                  </Select>
+                </label>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">Active months</p>
+                <div className="flex flex-wrap gap-2">
+                  {monthOptions.map((month, index) => {
+                    const isActive = inflow.months.includes(index + 1)
+                    return (
+                      <button
+                        key={month}
+                        type="button"
+                        onClick={() => toggleMonth(inflow.id, index + 1)}
+                        className={cn(
+                          "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                          isActive ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {month}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }

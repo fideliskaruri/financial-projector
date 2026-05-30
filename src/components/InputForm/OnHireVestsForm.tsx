@@ -1,65 +1,64 @@
-import { Plus, Trash2 } from 'lucide-react';
-import type { OnHireVest } from '../../engine/types';
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import type { OnHireVest } from "@/engine/types"
+import { motion } from "motion/react"
+import { Plus, Trash2 } from "lucide-react"
 
-interface Props {
-  vests: OnHireVest[];
-  onChange: (vests: OnHireVest[]) => void;
+interface OnHireVestsFormProps {
+  vests: OnHireVest[]
+  onChange: (vests: OnHireVest[]) => void
 }
 
-export default function OnHireVestsForm({ vests, onChange }: Props) {
-  const addVest = () => {
-    onChange([
-      ...vests,
-      { id: `vest-${Date.now()}`, date: '2026-01-15', amount: 0 },
-    ]);
-  };
-
-  const removeVest = (id: string) => {
-    onChange(vests.filter((v) => v.id !== id));
-  };
-
-  const updateVest = (id: string, field: string, value: unknown) => {
-    onChange(vests.map((v) => (v.id === id ? { ...v, [field]: value } : v)));
-  };
+export default function OnHireVestsForm({ vests, onChange }: OnHireVestsFormProps) {
+  const updateVest = (id: string, updates: Partial<OnHireVest>) => {
+    onChange(vests.map((vest) => (vest.id === id ? { ...vest, ...updates } : vest)))
+  }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-          On-Hire Stock Vests
-        </h3>
-        <button
-          onClick={addVest}
-          className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800"
-        >
-          <Plus size={14} /> Add Vest
-        </button>
-      </div>
-      <div className="space-y-1 max-h-48 overflow-y-auto">
-        {vests.map((vest) => (
-          <div key={vest.id} className="flex items-center gap-2 p-1.5 bg-gray-50 dark:bg-gray-800/50 rounded">
-            <input
-              type="date"
-              value={vest.date}
-              onChange={(e) => updateVest(vest.id, 'date', e.target.value)}
-              className="px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            />
-            <input
-              type="number"
-              placeholder="KES Amount"
-              value={vest.amount || ''}
-              onChange={(e) => updateVest(vest.id, 'amount', Number(e.target.value))}
-              className="w-32 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            />
-            <button
-              onClick={() => removeVest(vest.id)}
-              className="p-1 text-red-500 hover:text-red-700 rounded"
-            >
-              <Trash2 size={14} />
-            </button>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.09 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>On-hire vests</CardTitle>
+            <CardDescription>Capture one-off stock vesting events already on your grant schedule.</CardDescription>
           </div>
-        ))}
-      </div>
-    </div>
-  );
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => onChange([...vests, { id: `vest-${Date.now()}`, date: new Date().toISOString().slice(0, 10), amount: 0 }])}
+          >
+            <Plus className="h-4 w-4" />
+            Add vest
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {vests.map((vest, index) => (
+            <motion.div
+              key={vest.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04 }}
+              className="grid gap-4 rounded-2xl border border-border/70 p-4 md:grid-cols-[auto,1fr,1fr,auto] md:items-end"
+            >
+              <Badge variant="secondary" className="w-fit">Vest {index + 1}</Badge>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium text-muted-foreground">Date</span>
+                <Input type="date" value={vest.date} onChange={(event) => updateVest(vest.id, { date: event.target.value })} />
+              </label>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium text-muted-foreground">Net amount</span>
+                <Input type="number" value={vest.amount} onChange={(event) => updateVest(vest.id, { amount: Number(event.target.value) })} />
+              </label>
+              <Button type="button" variant="ghost" size="icon" onClick={() => onChange(vests.filter((item) => item.id !== vest.id))}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          ))}
+          {vests.length === 0 ? <p className="text-sm text-muted-foreground">No on-hire vest events configured.</p> : null}
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }

@@ -1,43 +1,46 @@
-import type { Milestone } from '../../engine/types';
-import { monthYearToString } from '../../data/defaults';
-import { Target, CheckCircle } from 'lucide-react';
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { Milestone } from "@/engine/types"
+import { monthYearToString } from "@/data/defaults"
+import { motion } from "motion/react"
+import { Flag, Target } from "lucide-react"
 
-interface Props {
-  milestones: Milestone[];
+const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
+
+interface MilestoneMarkersProps {
+  milestones: Milestone[]
 }
 
-export default function MilestoneMarkers({ milestones }: Props) {
+export default function MilestoneMarkers({ milestones }: MilestoneMarkersProps) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">🎯 Milestones</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {milestones.map((m) => (
-          <div
-            key={m.name}
-            className={`p-3 rounded-lg text-center ${
-              m.reachedDate
-                ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                : 'bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700'
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1 mb-1">
-              {m.reachedDate ? (
-                <CheckCircle size={14} className="text-green-500" />
-              ) : (
-                <Target size={14} className="text-gray-400" />
-              )}
-              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{m.name}</span>
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.08 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader>
+          <CardTitle>Milestones</CardTitle>
+          <CardDescription>Track when key balance targets are expected to land.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {milestones.map((milestone) => (
+            <div key={milestone.name} className="flex flex-col gap-3 rounded-2xl border border-border/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-primary/10 p-2 text-primary">
+                  {milestone.reachedDate ? <Flag className="h-4 w-4" /> : <Target className="h-4 w-4" />}
+                </div>
+                <div>
+                  <p className="font-medium">{milestone.name}</p>
+                  <p className="text-sm text-muted-foreground">Target balance: {currency.format(milestone.targetAmount)}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={milestone.reachedDate ? "success" : "secondary"}>{milestone.reachedDate ? "Projected" : "Pending"}</Badge>
+                <span className="text-sm text-muted-foreground">
+                  {milestone.reachedDate ? monthYearToString(milestone.reachedDate) : "Outside selected range"}
+                </span>
+              </div>
             </div>
-            {m.reachedDate ? (
-              <p className="text-xs text-green-600 dark:text-green-400">
-                {monthYearToString(m.reachedDate)}
-              </p>
-            ) : (
-              <p className="text-xs text-gray-400">Not yet reached</p>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+          ))}
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }

@@ -1,164 +1,220 @@
-import { useMemo, useCallback } from 'react';
-import { RotateCcw, Download } from 'lucide-react';
-import { useLocalStorage } from './hooks/useLocalStorage';
-import { DEFAULT_INPUTS, LEAN_SPENDING } from './data/defaults';
-import { runProjection } from './engine/projectionEngine';
-import type { AllInputs, FinancialParams, MonthYear, RecurringInflow, OnHireVest, StockGrant, OneTimeEvent } from './engine/types';
-import { exportToCSV } from './utils/csvExport';
+import FixedParamsForm from "@/components/InputForm/FixedParamsForm"
+import OnHireVestsForm from "@/components/InputForm/OnHireVestsForm"
+import OneTimeEventsForm from "@/components/InputForm/OneTimeEventsForm"
+import ProjectionRangeForm from "@/components/InputForm/ProjectionRangeForm"
+import RecurringInflowsForm from "@/components/InputForm/RecurringInflowsForm"
+import StockBonusForm from "@/components/InputForm/StockBonusForm"
+import Header from "@/components/Layout/Header"
+import MetricCard from "@/components/Layout/MetricCard"
+import Sidebar from "@/components/Layout/Sidebar"
+import ScenarioToggle from "@/components/ScenarioToggle"
+import BalanceChart from "@/components/Results/BalanceChart"
+import InflowBreakdownChart from "@/components/Results/InflowBreakdownChart"
+import MilestoneMarkers from "@/components/Results/MilestoneMarkers"
+import ProjectionTable from "@/components/Results/ProjectionTable"
+import SummaryCards from "@/components/Results/SummaryCards"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { DEFAULT_INPUTS, LEAN_SPENDING, monthYearToString } from "@/data/defaults"
+import type { AllInputs } from "@/engine/types"
+import { useLocalStorage } from "@/hooks/useLocalStorage"
+import { useProjection } from "@/hooks/useProjection"
+import { AnimatePresence, motion } from "motion/react"
+import { CalendarClock, PiggyBank, TrendingUp, Wallet } from "lucide-react"
+import { useEffect, useMemo, useState, type ComponentProps } from "react"
+import { toast } from "sonner"
 
-import Header from './components/Layout/Header';
-import FixedParamsForm from './components/InputForm/FixedParamsForm';
-import RecurringInflowsForm from './components/InputForm/RecurringInflowsForm';
-import OnHireVestsForm from './components/InputForm/OnHireVestsForm';
-import StockBonusForm from './components/InputForm/StockBonusForm';
-import OneTimeEventsForm from './components/InputForm/OneTimeEventsForm';
-import ProjectionRangeForm from './components/InputForm/ProjectionRangeForm';
-import ProjectionTable from './components/Results/ProjectionTable';
-import BalanceChart from './components/Results/BalanceChart';
-import MilestoneMarkers from './components/Results/MilestoneMarkers';
-import SummaryCards from './components/Results/SummaryCards';
-import ScenarioToggle from './components/ScenarioToggle';
+type AppTab = "overview" | "table" | "scenarios" | "settings"
 
-function App() {
-  const [inputs, setInputs] = useLocalStorage<AllInputs>('fp-inputs', DEFAULT_INPUTS);
-  const [darkMode, setDarkMode] = useLocalStorage('fp-dark-mode', false);
-  const [showComparison, setShowComparison] = useLocalStorage('fp-comparison', false);
+const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 
-  const result = useMemo(() => runProjection(inputs), [inputs]);
+function cloneInputs(value: AllInputs): AllInputs {
+  return JSON.parse(JSON.stringify(value)) as AllInputs
+}
 
-  const leanResult = useMemo(() => {
-    if (!showComparison) return undefined;
-    return runProjection({
-      ...inputs,
-      params: { ...inputs.params, monthlySpending: LEAN_SPENDING },
-    });
-  }, [inputs, showComparison]);
+export default function App() {
+  const [inputs, setInputs] = useLocalStorage<AllInputs>("financial-projector-inputs", cloneInputs(DEFAULT_INPUTS))
+  const [activeTab, setActiveTab] = useLocalStorage<AppTab>("financial-projector-active-tab", "overview")
+  const [darkMode, setDarkMode] = useLocalStorage<boolean>("financial-projector-dark-mode", true)
+  const [comparisonEnabled, setComparisonEnabled] = useState(true)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
-  const updateParams = useCallback((params: FinancialParams) => {
-    setInputs((prev) => ({ ...prev, params }));
-  }, [setInputs]);
+  const projection = useProjection(inputs)
+  const comparisonInputs = useMemo<AllInputs>(() => ({ ...inputs, params: { ...inputs.params, monthlySpending: LEAN_SPENDING } }), [inputs])
+  const comparisonProjection = useProjection(comparisonInputs)
 
-  const updateRecurring = useCallback((recurringInflows: RecurringInflow[]) => {
-    setInputs((prev) => ({ ...prev, recurringInflows }));
-  }, [setInputs]);
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode)
+    document.documentElement.style.colorScheme = darkMode ? "dark" : "light"
+  }, [darkMode])
 
-  const updateOnHireVests = useCallback((onHireVests: OnHireVest[]) => {
-    setInputs((prev) => ({ ...prev, onHireVests }));
-  }, [setInputs]);
+  const finalRow = projection.rows.at(-1)
+  const totalInterest = projection.rows.reduce((sum, row) => sum + row.interest, 0)
+  const savingsRate = inputs.params.netSalary > 0 ? ((inputs.params.netSalary - inputs.params.monthlySpending) / inputs.params.netSalary) * 100 : 0
+  const nextMilestone = projection.milestones.find((milestone) => milestone.reachedDate)
+  const growthPercent = inputs.params.startingBalance > 0 && finalRow ? ((finalRow.endBalance - inputs.params.startingBalance) / inputs.params.startingBalance) * 100 : 0
 
-  const updateStockGrants = useCallback((stockGrants: StockGrant[]) => {
-    setInputs((prev) => ({ ...prev, stockGrants }));
-  }, [setInputs]);
+  const handleReset = () => {
+    setInputs(cloneInputs(DEFAULT_INPUTS))
+    toast.success("Inputs reset to default assumptions")
+  }
 
-  const updateOneTimeEvents = useCallback((oneTimeEvents: OneTimeEvent[]) => {
-    setInputs((prev) => ({ ...prev, oneTimeEvents }));
-  }, [setInputs]);
+  const handleExport = () => {
+    const csv = [
+      ["Month", "Opening Balance", "Inflows", "Spending", "Interest", "Closing Balance"].join(","),
+      ...projection.rows.map((row) => [row.dateStr, row.startBalance, row.totalInflows, row.spending, row.interest, row.endBalance].join(",")),
+    ].join("\n")
 
-  const updateStartDate = useCallback((startDate: MonthYear) => {
-    setInputs((prev) => ({ ...prev, params: { ...prev.params, startDate } }));
-  }, [setInputs]);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "financial-projection.csv"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    toast.success("Projection exported as CSV")
+  }
 
-  const updateEndDate = useCallback((endDate: MonthYear) => {
-    setInputs((prev) => ({ ...prev, params: { ...prev.params, endDate } }));
-  }, [setInputs]);
-
-  const resetDefaults = useCallback(() => {
-    setInputs(DEFAULT_INPUTS);
-  }, [setInputs]);
-
-  const toggleDarkMode = useCallback(() => {
-    setDarkMode((prev) => !prev);
-  }, [setDarkMode]);
+  const metricCards: ComponentProps<typeof MetricCard>[] = [
+    {
+      label: "End Balance",
+      value: currency.format(finalRow?.endBalance ?? 0),
+      icon: Wallet,
+      trend: { value: `${growthPercent.toFixed(0)}% vs starting`, direction: growthPercent >= 0 ? "up" : "down" },
+      helper: "Projected closing balance",
+    },
+    {
+      label: "Total Interest",
+      value: currency.format(totalInterest),
+      icon: TrendingUp,
+      trend: { value: `${((totalInterest / Math.max(finalRow?.endBalance ?? 1, 1)) * 100).toFixed(1)}% of end balance`, direction: "up" as const },
+      helper: "Compounded across the range",
+    },
+    {
+      label: "Next Milestone Date",
+      value: nextMilestone?.reachedDate ? monthYearToString(nextMilestone.reachedDate) : "Not reached",
+      icon: CalendarClock,
+      helper: nextMilestone ? nextMilestone.name : "Extend the range to surface more milestones",
+    },
+    {
+      label: "Monthly Savings Rate",
+      value: `${savingsRate.toFixed(0)}%`,
+      icon: PiggyBank,
+      trend: { value: currency.format(inputs.params.netSalary - inputs.params.monthlySpending), direction: savingsRate >= 0 ? "up" : "down" },
+      helper: "Salary minus baseline spending",
+    },
+  ]
 
   return (
-    <div className={darkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
-        <Header darkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
+    <div className="min-h-screen bg-background text-foreground">
+      <Sidebar
+        activeTab={activeTab}
+        mobileOpen={mobileSidebarOpen}
+        onOpenMobile={() => setMobileSidebarOpen(true)}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+        onSelectTab={(tab) => {
+          setActiveTab(tab)
+          setMobileSidebarOpen(false)
+        }}
+      />
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Input Panel */}
-            <div className="lg:col-span-4 space-y-4">
-              <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-5">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white">⚙️ Parameters</h2>
-                  <button
-                    onClick={resetDefaults}
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  >
-                    <RotateCcw size={12} /> Reset
-                  </button>
+      <div className="min-h-screen">
+        <Header
+          activeTab={activeTab}
+          darkMode={darkMode}
+          onExport={handleExport}
+          onReset={handleReset}
+          onToggleDarkMode={() => {
+            setDarkMode((value) => !value)
+            toast.info(darkMode ? "Light mode enabled" : "Dark mode enabled")
+          }}
+          onTabChange={setActiveTab}
+        />
+
+        <main className="px-4 py-6 sm:px-6 lg:px-8 lg:pl-80">
+          <AnimatePresence mode="wait">
+            {activeTab === "overview" ? (
+              <motion.div key="overview" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
+                <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.08 } } }} className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {metricCards.map((metric) => (
+                    <motion.div key={metric.label} variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}>
+                      <MetricCard {...metric} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+                <BalanceChart rows={projection.rows} milestones={projection.milestones} />
+                <div className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
+                  <InflowBreakdownChart rows={projection.rows} />
+                  <MilestoneMarkers milestones={projection.milestones} />
                 </div>
+                <SummaryCards yearlySummaries={projection.yearlySummaries} />
+              </motion.div>
+            ) : null}
 
-                <FixedParamsForm params={inputs.params} onChange={updateParams} />
+            {activeTab === "table" ? (
+              <motion.div key="table" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }}>
+                <ProjectionTable rows={projection.rows} />
+              </motion.div>
+            ) : null}
 
-                <ProjectionRangeForm
-                  startDate={inputs.params.startDate}
-                  endDate={inputs.params.endDate}
-                  onChangeStart={updateStartDate}
-                  onChangeEnd={updateEndDate}
-                />
-
-                <RecurringInflowsForm
-                  inflows={inputs.recurringInflows}
-                  onChange={updateRecurring}
-                />
-
-                <OnHireVestsForm
-                  vests={inputs.onHireVests}
-                  onChange={updateOnHireVests}
-                />
-
-                <StockBonusForm
-                  grants={inputs.stockGrants}
-                  onChange={updateStockGrants}
-                />
-
-                <OneTimeEventsForm
-                  events={inputs.oneTimeEvents}
-                  onChange={updateOneTimeEvents}
-                />
-              </div>
-            </div>
-
-            {/* Results Panel */}
-            <div className="lg:col-span-8 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-gray-900 dark:text-white">📈 Projection Results</h2>
-                <button
-                  onClick={() => exportToCSV(result.rows)}
-                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                >
-                  <Download size={12} /> Export CSV
-                </button>
-              </div>
-
-              <BalanceChart
-                rows={result.rows}
-                milestones={result.milestones}
-                comparisonRows={leanResult?.rows}
-                comparisonLabel="Lean Spending"
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <MilestoneMarkers milestones={result.milestones} />
+            {activeTab === "scenarios" ? (
+              <motion.div key="scenarios" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
                 <ScenarioToggle
-                  inputs={inputs}
-                  baselineResult={result}
-                  showComparison={showComparison}
-                  onToggle={() => setShowComparison((prev) => !prev)}
+                  comparisonEnabled={comparisonEnabled}
+                  onToggle={() => {
+                    const nextValue = !comparisonEnabled
+                    setComparisonEnabled(nextValue)
+                    toast.info(nextValue ? "Lean scenario overlay enabled" : "Lean scenario overlay hidden")
+                  }}
+                  baselineResult={projection}
+                  comparisonResult={comparisonProjection}
                 />
-              </div>
+                <BalanceChart rows={projection.rows} milestones={projection.milestones} comparisonRows={comparisonEnabled ? comparisonProjection.rows : undefined} />
+                <Card className="border-border/70 bg-card/85 backdrop-blur">
+                  <CardHeader>
+                    <CardTitle>Scenario notes</CardTitle>
+                    <CardDescription>Use the lean scenario to understand the effect of lowering monthly spending to the configured lean target.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary">Baseline spending: {currency.format(inputs.params.monthlySpending)}</Badge>
+                        <Badge variant="outline">Lean spending: {currency.format(LEAN_SPENDING)}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Keep baseline assumptions intact while visualizing a lower-spend operating mode.</p>
+                    </div>
+                    <Separator orientation="vertical" className="hidden h-12 md:block" />
+                    <Button type="button" variant="outline" onClick={() => setActiveTab("settings")}>Adjust settings</Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : null}
 
-              <SummaryCards summaries={result.yearlySummaries} />
-
-              <ProjectionTable rows={result.rows} />
-            </div>
-          </div>
+            {activeTab === "settings" ? (
+              <motion.div key="settings" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.24 }} className="space-y-6">
+                <div className="grid gap-6 xl:grid-cols-2">
+                  <FixedParamsForm params={inputs.params} onChange={(params) => setInputs((current) => ({ ...current, params }))} />
+                  <ProjectionRangeForm
+                    startDate={inputs.params.startDate}
+                    endDate={inputs.params.endDate}
+                    onChange={({ startDate, endDate }) => setInputs((current) => ({ ...current, params: { ...current.params, startDate, endDate } }))}
+                  />
+                </div>
+                <RecurringInflowsForm inflows={inputs.recurringInflows} onChange={(recurringInflows) => setInputs((current) => ({ ...current, recurringInflows }))} />
+                <div className="grid gap-6 xl:grid-cols-2">
+                  <OnHireVestsForm vests={inputs.onHireVests} onChange={(onHireVests) => setInputs((current) => ({ ...current, onHireVests }))} />
+                  <StockBonusForm stockGrants={inputs.stockGrants} onChange={(stockGrants) => setInputs((current) => ({ ...current, stockGrants }))} />
+                </div>
+                <OneTimeEventsForm events={inputs.oneTimeEvents} onChange={(oneTimeEvents) => setInputs((current) => ({ ...current, oneTimeEvents }))} />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </main>
       </div>
     </div>
-  );
+  )
 }
-
-export default App;

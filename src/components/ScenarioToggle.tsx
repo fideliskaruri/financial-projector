@@ -1,62 +1,61 @@
-import type { AllInputs, ProjectionResult } from '../engine/types';
-import { LEAN_SPENDING } from '../data/defaults';
-import { runProjection } from '../engine/projectionEngine';
-import { formatKES } from '../utils/formatters';
-import { useMemo } from 'react';
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import type { ProjectionResult } from "@/engine/types"
+import { motion } from "motion/react"
+import { GitCompareArrows, Sparkles } from "lucide-react"
 
-interface Props {
-  inputs: AllInputs;
-  baselineResult: ProjectionResult;
-  showComparison: boolean;
-  onToggle: () => void;
+const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
+
+interface ScenarioToggleProps {
+  comparisonEnabled: boolean
+  onToggle: () => void
+  baselineResult: ProjectionResult
+  comparisonResult: ProjectionResult
 }
 
-export default function ScenarioToggle({ inputs, baselineResult, showComparison, onToggle }: Props) {
-  const leanResult = useMemo(() => {
-    if (!showComparison) return null;
-    const leanInputs: AllInputs = {
-      ...inputs,
-      params: { ...inputs.params, monthlySpending: LEAN_SPENDING },
-    };
-    return runProjection(leanInputs);
-  }, [inputs, showComparison]);
-
-  const baselineEnd = baselineResult.rows[baselineResult.rows.length - 1]?.endBalance ?? 0;
-  const leanEnd = leanResult?.rows[leanResult.rows.length - 1]?.endBalance ?? 0;
-  const diff = leanEnd - baselineEnd;
+export default function ScenarioToggle({ comparisonEnabled, onToggle, baselineResult, comparisonResult }: ScenarioToggleProps) {
+  const baselineEnd = baselineResult.rows.at(-1)?.endBalance ?? 0
+  const comparisonEnd = comparisonResult.rows.at(-1)?.endBalance ?? 0
+  const delta = comparisonEnd - baselineEnd
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">🔀 What-If: Lean Spending</h3>
-        <button
-          onClick={onToggle}
-          className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-            showComparison
-              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
-          }`}
-        >
-          {showComparison ? 'On' : 'Off'}
-        </button>
-      </div>
-      {showComparison && leanResult && (
-        <div className="text-xs space-y-1 text-gray-500 dark:text-gray-400">
-          <p>
-            Lean spending: <span className="font-medium text-gray-900 dark:text-white">{formatKES(LEAN_SPENDING)}/mo</span>
-            {' vs '}
-            <span className="font-medium">{formatKES(inputs.params.monthlySpending)}/mo</span>
-          </p>
-          <p>
-            Extra saved by end: <span className="font-medium text-green-600 dark:text-green-400">+{formatKES(diff)}</span>
-          </p>
-          <p>
-            Lean end balance: <span className="font-medium text-gray-900 dark:text-white">{formatKES(leanEnd)}</span>
-          </p>
-        </div>
-      )}
-    </div>
-  );
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>Scenario comparison</CardTitle>
+            <CardDescription>Overlay the default forecast with a lean spending scenario.</CardDescription>
+          </div>
+          <Button type="button" variant={comparisonEnabled ? "default" : "outline"} onClick={onToggle}>
+            <GitCompareArrows className="h-4 w-4" />
+            {comparisonEnabled ? "Hide comparison" : "Compare lean scenario"}
+          </Button>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-border/70 p-4">
+            <p className="text-sm text-muted-foreground">Baseline end balance</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(baselineEnd)}</p>
+          </div>
+          <div className="rounded-2xl border border-border/70 p-4">
+            <p className="text-sm text-muted-foreground">Lean scenario end balance</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(comparisonEnd)}</p>
+          </div>
+          <div className={cn("rounded-2xl border p-4", delta >= 0 ? "border-success/30 bg-success/10" : "border-warning/30 bg-warning/10")}>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Impact at horizon</p>
+                <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(Math.abs(delta))}</p>
+              </div>
+              <Badge variant={delta >= 0 ? "success" : "warning"} className="gap-1">
+                <Sparkles className="h-3.5 w-3.5" />
+                {delta >= 0 ? "Ahead" : "Behind"}
+              </Badge>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }
-
-export { ScenarioToggle };

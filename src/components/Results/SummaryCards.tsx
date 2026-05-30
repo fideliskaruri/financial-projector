@@ -1,37 +1,46 @@
-import type { YearlySummary } from '../../engine/types';
-import { formatKES } from '../../utils/formatters';
-import { Wallet, Percent } from 'lucide-react';
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import type { YearlySummary } from "@/engine/types"
+import { motion } from "motion/react"
 
-interface Props {
-  summaries: YearlySummary[];
+const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
+
+interface SummaryCardsProps {
+  yearlySummaries: YearlySummary[]
 }
 
-export default function SummaryCards({ summaries }: Props) {
+export default function SummaryCards({ yearlySummaries }: SummaryCardsProps) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">📊 Yearly Summary</h3>
-      <div className="space-y-3">
-        {summaries.map((s) => (
-          <div key={s.year} className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold text-gray-900 dark:text-white">{s.year}</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                {formatKES(s.endBalance)}
-              </span>
+    <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, delay: 0.12 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <CardTitle>Yearly summaries</CardTitle>
+              <CardDescription>Annual checkpoints for savings contribution, interest, and ending balance.</CardDescription>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                <Wallet size={12} />
-                <span>Saved: {formatKES(s.totalSaved)}</span>
-              </div>
-              <div className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
-                <Percent size={12} />
-                <span>Interest: {formatKES(s.totalInterest)}</span>
-              </div>
-            </div>
+            <Badge variant="secondary">{yearlySummaries.length} years</Badge>
           </div>
-        ))}
-      </div>
-    </div>
-  );
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {yearlySummaries.map((summary) => (
+            <div key={summary.year} className="rounded-2xl border border-border/70 p-4">
+              <p className="text-sm font-medium text-muted-foreground">{summary.year}</p>
+              <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(summary.endBalance)}</p>
+              <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center justify-between gap-3">
+                  <span>Total saved</span>
+                  <span className="tabular-nums text-foreground">{currency.format(summary.totalSaved)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span>Interest earned</span>
+                  <span className="tabular-nums text-foreground">{currency.format(summary.totalInterest)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }

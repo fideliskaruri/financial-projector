@@ -1,64 +1,64 @@
-import type { MonthYear } from '../../engine/types';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
+import type { MonthYear } from "@/engine/types"
+import { motion } from "motion/react"
 
-interface Props {
-  startDate: MonthYear;
-  endDate: MonthYear;
-  onChangeStart: (date: MonthYear) => void;
-  onChangeEnd: (date: MonthYear) => void;
+const months = [
+  { value: 1, label: "Jan" },
+  { value: 2, label: "Feb" },
+  { value: 3, label: "Mar" },
+  { value: 4, label: "Apr" },
+  { value: 5, label: "May" },
+  { value: 6, label: "Jun" },
+  { value: 7, label: "Jul" },
+  { value: 8, label: "Aug" },
+  { value: 9, label: "Sep" },
+  { value: 10, label: "Oct" },
+  { value: 11, label: "Nov" },
+  { value: 12, label: "Dec" },
+]
+
+interface ProjectionRangeFormProps {
+  startDate: MonthYear
+  endDate: MonthYear
+  onChange: (range: { startDate: MonthYear; endDate: MonthYear }) => void
 }
 
-export default function ProjectionRangeForm({ startDate, endDate, onChangeStart, onChangeEnd }: Props) {
+export default function ProjectionRangeForm({ startDate, endDate, onChange }: ProjectionRangeFormProps) {
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-        Projection Range
-      </h3>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Start</label>
-          <div className="flex gap-2">
-            <select
-              value={startDate.month}
-              onChange={(e) => onChangeStart({ ...startDate, month: Number(e.target.value) })}
-              className="flex-1 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            >
-              {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              value={startDate.year}
-              onChange={(e) => onChangeStart({ ...startDate, year: Number(e.target.value) })}
-              className="w-20 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            />
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.03 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader>
+          <CardTitle>Projection range</CardTitle>
+          <CardDescription>Set the start and end period for the forecast horizon.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl border border-border/70 p-4">
+            <p className="mb-3 text-sm font-medium text-muted-foreground">Start date</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Select value={startDate.month} onChange={(event) => onChange({ startDate: { ...startDate, month: Number(event.target.value) }, endDate })}>
+                {months.map((month) => (
+                  <option key={month.value} value={month.value}>{month.label}</option>
+                ))}
+              </Select>
+              <Input type="number" value={startDate.year} onChange={(event) => onChange({ startDate: { ...startDate, year: Number(event.target.value) }, endDate })} />
+            </div>
           </div>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">End</label>
-          <div className="flex gap-2">
-            <select
-              value={endDate.month}
-              onChange={(e) => onChangeEnd({ ...endDate, month: Number(e.target.value) })}
-              className="flex-1 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            >
-              {Array.from({ length: 12 }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              value={endDate.year}
-              onChange={(e) => onChangeEnd({ ...endDate, year: Number(e.target.value) })}
-              className="w-20 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-            />
+
+          <div className="rounded-xl border border-border/70 p-4">
+            <p className="mb-3 text-sm font-medium text-muted-foreground">End date</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Select value={endDate.month} onChange={(event) => onChange({ startDate, endDate: { ...endDate, month: Number(event.target.value) } })}>
+                {months.map((month) => (
+                  <option key={month.value} value={month.value}>{month.label}</option>
+                ))}
+              </Select>
+              <Input type="number" value={endDate.year} onChange={(event) => onChange({ startDate, endDate: { ...endDate, year: Number(event.target.value) } })} />
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  );
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }

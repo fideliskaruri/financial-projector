@@ -1,100 +1,95 @@
-import { Plus, Trash2 } from 'lucide-react';
-import type { OneTimeEvent } from '../../engine/types';
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select } from "@/components/ui/select"
+import type { OneTimeEvent } from "@/engine/types"
+import { motion } from "motion/react"
+import { Plus, Trash2 } from "lucide-react"
 
-interface Props {
-  events: OneTimeEvent[];
-  onChange: (events: OneTimeEvent[]) => void;
+interface OneTimeEventsFormProps {
+  events: OneTimeEvent[]
+  onChange: (events: OneTimeEvent[]) => void
 }
 
-export default function OneTimeEventsForm({ events, onChange }: Props) {
-  const addEvent = () => {
-    onChange([
-      ...events,
-      {
-        id: `event-${Date.now()}`,
-        name: '',
-        amount: 0,
-        month: new Date().getMonth() + 1,
-        year: new Date().getFullYear(),
-        isOutflow: true,
-      },
-    ]);
-  };
-
-  const removeEvent = (id: string) => {
-    onChange(events.filter((e) => e.id !== id));
-  };
-
-  const updateEvent = (id: string, field: string, value: unknown) => {
-    onChange(events.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
-  };
+export default function OneTimeEventsForm({ events, onChange }: OneTimeEventsFormProps) {
+  const updateEvent = (id: string, updates: Partial<OneTimeEvent>) => {
+    onChange(events.map((event) => (event.id === id ? { ...event, ...updates } : event)))
+  }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
-          One-Time Events
-        </h3>
-        <button
-          onClick={addEvent}
-          className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800"
-        >
-          <Plus size={14} /> Add Event
-        </button>
-      </div>
-      {events.length === 0 && (
-        <p className="text-xs text-gray-400 dark:text-gray-500 italic">No one-time events. Add purchases, windfalls, etc.</p>
-      )}
-      {events.map((event) => (
-        <div key={event.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-          <input
-            type="text"
-            placeholder="Name (e.g., iPhone)"
-            value={event.name}
-            onChange={(e) => updateEvent(event.id, 'name', e.target.value)}
-            className="flex-1 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-          />
-          <input
-            type="number"
-            placeholder="Amount"
-            value={event.amount || ''}
-            onChange={(e) => updateEvent(event.id, 'amount', Number(e.target.value))}
-            className="w-24 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-          />
-          <select
-            value={event.month}
-            onChange={(e) => updateEvent(event.id, 'month', Number(e.target.value))}
-            className="px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.15 }}>
+      <Card className="border-border/70 bg-card/85 backdrop-blur">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <CardTitle>One-time events</CardTitle>
+            <CardDescription>Add future windfalls or expenses that occur once.</CardDescription>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() =>
+              onChange([
+                ...events,
+                {
+                  id: `event-${Date.now()}`,
+                  name: "New event",
+                  amount: 0,
+                  month: 1,
+                  year: new Date().getFullYear(),
+                  isOutflow: false,
+                },
+              ])
+            }
           >
-            {Array.from({ length: 12 }, (_, i) => (
-              <option key={i + 1} value={i + 1}>
-                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]}
-              </option>
-            ))}
-          </select>
-          <input
-            type="number"
-            value={event.year}
-            onChange={(e) => updateEvent(event.id, 'year', Number(e.target.value))}
-            className="w-20 px-2 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white"
-          />
-          <label className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={event.isOutflow}
-              onChange={(e) => updateEvent(event.id, 'isOutflow', e.target.checked)}
-              className="rounded"
-            />
-            Outflow
-          </label>
-          <button
-            onClick={() => removeEvent(event.id)}
-            className="p-1 text-red-500 hover:text-red-700 rounded"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
-      ))}
-    </div>
-  );
+            <Plus className="h-4 w-4" />
+            Add event
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {events.map((event, index) => (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04 }}
+              className="grid gap-4 rounded-2xl border border-border/70 p-4 md:grid-cols-[1.4fr,1fr,0.8fr,0.9fr,0.9fr,auto] md:items-end"
+            >
+              <div className="space-y-2">
+                <Badge variant={event.isOutflow ? "warning" : "success"} className="w-fit">{event.isOutflow ? "Expense" : "Inflow"}</Badge>
+                <Input value={event.name} onChange={(e) => updateEvent(event.id, { name: e.target.value })} />
+              </div>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium text-muted-foreground">Amount</span>
+                <Input type="number" value={event.amount} onChange={(e) => updateEvent(event.id, { amount: Number(e.target.value) })} />
+              </label>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium text-muted-foreground">Month</span>
+                <Select value={event.month} onChange={(e) => updateEvent(event.id, { month: Number(e.target.value) })}>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>{i + 1}</option>
+                  ))}
+                </Select>
+              </label>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium text-muted-foreground">Year</span>
+                <Input type="number" value={event.year} onChange={(e) => updateEvent(event.id, { year: Number(e.target.value) })} />
+              </label>
+              <label className="space-y-2 text-sm">
+                <span className="font-medium text-muted-foreground">Direction</span>
+                <Select value={event.isOutflow ? "outflow" : "inflow"} onChange={(e) => updateEvent(event.id, { isOutflow: e.target.value === "outflow" })}>
+                  <option value="inflow">Inflow</option>
+                  <option value="outflow">Outflow</option>
+                </Select>
+              </label>
+              <Button type="button" variant="ghost" size="icon" onClick={() => onChange(events.filter((item) => item.id !== event.id))}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          ))}
+          {events.length === 0 ? <p className="text-sm text-muted-foreground">No one-time events configured.</p> : null}
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
 }
