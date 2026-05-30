@@ -17,7 +17,7 @@ export default function SummaryCards({ yearlySummaries }: SummaryCardsProps) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <CardTitle>Yearly summaries</CardTitle>
-              <CardDescription>Annual checkpoints for savings contribution, interest, and ending balance.</CardDescription>
+              <CardDescription>Year-end checkpoints.</CardDescription>
             </div>
             <Badge variant="secondary">{yearlySummaries.length} years</Badge>
           </div>

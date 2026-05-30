@@ -17,7 +17,7 @@ export default function MilestoneMarkers({ milestones }: MilestoneMarkersProps) 
       <Card className="border-border/70 bg-card/85 backdrop-blur">
         <CardHeader>
           <CardTitle>Milestones</CardTitle>
-          <CardDescription>Track when key balance targets are expected to land.</CardDescription>
+          <CardDescription>Balance targets.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {milestones.map((milestone) => (

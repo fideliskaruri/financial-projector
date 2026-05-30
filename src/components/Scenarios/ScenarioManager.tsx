@@ -112,7 +112,7 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
           <CardHeader className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <CardTitle>Scenario manager</CardTitle>
-              <CardDescription>Save named snapshots, reload them later, and overlay up to three saved scenarios against the current plan.</CardDescription>
+              <CardDescription>Save, compare, and reload scenarios.</CardDescription>
             </div>
             <div className="flex w-full flex-col gap-2 sm:flex-row xl:w-auto">
               <Input
@@ -133,7 +133,7 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
                 <Badge variant="secondary">Current</Badge>
                 <Badge variant="outline">End balance {currency.format(currentEndBalance)}</Badge>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">The current inputs always remain the baseline. Compare saved snapshots or flip on the lean quick action below.</p>
+              <p className="mt-3 text-sm text-muted-foreground">Current baseline. Compare saved scenarios or enable lean overlay below.</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button
                   type="button"
@@ -161,7 +161,7 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
                   {leanDelta >= 0 ? "Ahead" : "Behind"}
                 </Badge>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">Using the lean quick action sets monthly spending to {currency.format(LEAN_SPENDING)} without overwriting your saved baseline.</p>
+              <p className="mt-3 text-sm text-muted-foreground">Spending set to {currency.format(LEAN_SPENDING)}/mo.</p>
             </div>
           </CardContent>
         </Card>
@@ -173,12 +173,12 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
         <Card className="border-border/70 bg-card/85 backdrop-blur">
           <CardHeader>
             <CardTitle>Saved scenarios</CardTitle>
-            <CardDescription>Load a saved plan into the editor, delete old snapshots, or mark scenarios for chart comparison.</CardDescription>
+            <CardDescription>Select to compare or load.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {savedScenarios.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border/70 p-6 text-sm text-muted-foreground">
-                No saved scenarios yet. Save the current assumptions to build a comparison library.
+                No saved scenarios yet.
               </div>
             ) : (
               savedScenarios.map((scenario, index) => {

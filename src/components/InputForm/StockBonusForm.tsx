@@ -23,7 +23,7 @@ export default function StockBonusForm({ stockGrants, onChange }: StockBonusForm
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Stock grants & bonus schedule</CardTitle>
-            <CardDescription>Model annual grants, exchange rates, vest cadence, and taxes.</CardDescription>
+            <CardDescription>Annual grants and vesting schedules.</CardDescription>
           </div>
           <Button
             type="button"

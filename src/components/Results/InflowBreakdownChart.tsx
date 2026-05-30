@@ -38,7 +38,7 @@ export default function InflowBreakdownChart({ rows }: InflowBreakdownChartProps
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <CardTitle>Inflow breakdown</CardTitle>
-              <CardDescription>Monthly stacked view of salary, ESPP, stock vesting, and bonus inflows.</CardDescription>
+              <CardDescription>Monthly inflow breakdown.</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">Salary</Badge>

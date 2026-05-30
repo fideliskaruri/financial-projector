@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { AnimatePresence, motion } from "motion/react"
+import { motion } from "motion/react"
 import { Download, Moon, RotateCcw, Share2, Sun } from "lucide-react"
 
 type AppTab = "overview" | "table" | "scenarios" | "settings"
@@ -29,22 +29,7 @@ export default function Header({ activeTab, darkMode, onExport, onReset, onShare
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="space-y-2 pl-14 lg:pl-0">
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-muted-foreground">Spark design system</p>
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Financial Projector</h1>
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    className="text-sm text-muted-foreground"
-                  >
-                    {tabItems.find((item) => item.id === activeTab)?.label}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-              <p className="max-w-2xl text-sm text-muted-foreground">Track salary, equity, bonuses, and major events in a cleaner dashboard workflow.</p>
+              <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Financial Projector</h1>
             </motion.div>
           </div>
 

@@ -22,7 +22,7 @@ export default function OnHireVestsForm({ vests, onChange }: OnHireVestsFormProp
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>On-hire vests</CardTitle>
-            <CardDescription>Capture one-off stock vesting events already on your grant schedule.</CardDescription>
+            <CardDescription>Fixed stock vesting events.</CardDescription>
           </div>
           <Button
             type="button"

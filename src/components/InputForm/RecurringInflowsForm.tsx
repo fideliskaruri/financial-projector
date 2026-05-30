@@ -60,7 +60,7 @@ export default function RecurringInflowsForm({ inflows, onChange }: RecurringInf
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Recurring inflows</CardTitle>
-            <CardDescription>Add salary-adjacent inflows such as ESPP, cash bonuses, or stipends.</CardDescription>
+            <CardDescription>ESPP, bonuses, stipends, etc.</CardDescription>
           </div>
           <Button type="button" size="sm" onClick={addInflow}>
             <Plus className="h-4 w-4" />

@@ -24,7 +24,7 @@ export default function ProjectionTable({ rows }: ProjectionTableProps) {
       <Card className="border-border/70 bg-card/85 backdrop-blur">
         <CardHeader>
           <CardTitle>Projection table</CardTitle>
-          <CardDescription>Detailed month-by-month balances, inflows, spending, and interest.</CardDescription>
+          <CardDescription>Month-by-month projection.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-2xl border border-border/70">

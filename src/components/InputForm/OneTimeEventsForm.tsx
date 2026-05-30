@@ -23,7 +23,7 @@ export default function OneTimeEventsForm({ events, onChange }: OneTimeEventsFor
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>One-time events</CardTitle>
-            <CardDescription>Add future windfalls or expenses that occur once.</CardDescription>
+            <CardDescription>One-time inflows or expenses.</CardDescription>
           </div>
           <Button
             type="button"

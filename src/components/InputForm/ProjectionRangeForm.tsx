@@ -31,7 +31,7 @@ export default function ProjectionRangeForm({ startDate, endDate, onChange }: Pr
       <Card className="border-border/70 bg-card/85 backdrop-blur">
         <CardHeader>
           <CardTitle>Projection range</CardTitle>
-          <CardDescription>Set the start and end period for the forecast horizon.</CardDescription>
+          <CardDescription>Forecast period.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-border/70 p-4">

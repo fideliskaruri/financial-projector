@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { ProjectionResult } from "@/engine/types"
 import { motion } from "motion/react"
@@ -26,7 +26,6 @@ export default function ScenarioToggle({ comparisonEnabled, onToggle, baselineRe
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Scenario comparison</CardTitle>
-            <CardDescription>Overlay the default forecast with a lean spending scenario.</CardDescription>
           </div>
           <Button type="button" variant={comparisonEnabled ? "default" : "outline"} onClick={onToggle}>
             <GitCompareArrows className="h-4 w-4" />

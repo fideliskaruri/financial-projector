@@ -19,7 +19,7 @@ export default function FixedParamsForm({ params, onChange }: FixedParamsFormPro
       <Card className="border-border/70 bg-card/85 backdrop-blur">
         <CardHeader>
           <CardTitle>Core assumptions</CardTitle>
-          <CardDescription>Adjust income, spending, interest, and the opening cash position.</CardDescription>
+          <CardDescription>Adjust income, spending, and interest.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <label className="space-y-2 text-sm">

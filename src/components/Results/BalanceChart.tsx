@@ -51,7 +51,7 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Balance trajectory</CardTitle>
-            <CardDescription>Projected closing balance by month, including equity, bonuses, and saved scenario overlays.</CardDescription>
+            <CardDescription>Projected closing balance by month.</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary">Current</Badge>

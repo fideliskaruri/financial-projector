@@ -54,7 +54,7 @@ export default function SpendingScheduleForm({ overrides, onChange }: SpendingSc
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Spending schedule</CardTitle>
-            <CardDescription>Override monthly spending from a specific month onward as your lifestyle changes over time.</CardDescription>
+            <CardDescription>Override spending from a specific month onward.</CardDescription>
           </div>
           <Button type="button" size="sm" onClick={handleAdd}>
             <Plus className="h-4 w-4" />
