@@ -2,7 +2,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import type { MonthYear } from "@/engine/types"
-import { motion } from "motion/react"
 
 const months = [
   { value: 1, label: "Jan" },
@@ -27,7 +26,7 @@ interface ProjectionRangeFormProps {
 
 export default function ProjectionRangeForm({ startDate, endDate, onChange }: ProjectionRangeFormProps) {
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.03 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Projection range</CardTitle>
@@ -59,6 +58,6 @@ export default function ProjectionRangeForm({ startDate, endDate, onChange }: Pr
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }

@@ -1,5 +1,7 @@
-const CACHE_NAME = 'fp-v2'
+const CACHE_NAME = 'fp-v3'
+const CACHE_PREFIX = 'fp-'
 const APP_SHELL = ['/financial-projector/']
+const NETWORK_FIRST_DESTINATIONS = new Set(['document', 'script', 'style', 'worker'])
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -8,12 +10,23 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))),
-    ]),
+    (async () => {
+      const keys = await caches.keys()
+      await Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key)))
+      await self.clients.claim()
+    })(),
   )
 })
+
+async function cacheResponse(request, response) {
+  if (!response.ok) {
+    return response
+  }
+
+  const cache = await caches.open(CACHE_NAME)
+  await cache.put(request, response.clone())
+  return response
+}
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
@@ -22,13 +35,16 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const copy = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put('/financial-projector/', copy))
+      (async () => {
+        try {
+          const response = await fetch(event.request)
+          const cache = await caches.open(CACHE_NAME)
+          await cache.put(APP_SHELL[0], response.clone())
           return response
-        })
-        .catch(async () => (await caches.match(event.request)) || caches.match('/financial-projector/')),
+        } catch {
+          return (await caches.match(APP_SHELL[0])) || Response.error()
+        }
+      })(),
     )
     return
   }
@@ -38,19 +54,31 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
+  if (NETWORK_FIRST_DESTINATIONS.has(event.request.destination)) {
+    event.respondWith(
+      (async () => {
+        try {
+          return await cacheResponse(event.request, await fetch(event.request))
+        } catch {
+          return (await caches.match(event.request)) || Response.error()
+        }
+      })(),
+    )
+    return
+  }
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response
+    (async () => {
+      const cached = await caches.match(event.request)
+      if (cached) {
+        return cached
       }
 
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse.ok) {
-          const copy = networkResponse.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
-        }
-        return networkResponse
-      })
-    }),
+      try {
+        return await cacheResponse(event.request, await fetch(event.request))
+      } catch {
+        return Response.error()
+      }
+    })(),
   )
 })

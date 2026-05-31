@@ -6,10 +6,28 @@ import { Select } from "@/components/ui/select"
 import type { Transaction } from "@/db/database"
 import { deleteTransaction, useCategories, useTransactions } from "@/hooks/useBudget"
 import { categoryIcons, formatKES, longDateFormatter } from "@/lib/finance"
-import { motion } from "motion/react"
 import { Edit3, Search, Trash2, Upload } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
+
+function TransactionListSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr),11rem,10rem,10rem,auto] xl:items-center">
+        <div className="h-11 rounded-md bg-secondary" />
+        <div className="h-11 rounded-md bg-secondary" />
+        <div className="h-11 rounded-md bg-secondary" />
+        <div className="h-11 rounded-md bg-secondary" />
+        <div className="h-11 rounded-md bg-secondary" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="h-20 rounded-lg bg-secondary/60" />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function TransactionList() {
   const [search, setSearch] = useState("")
@@ -21,6 +39,7 @@ export default function TransactionList() {
 
   const categories = useCategories()
   const transactions = useTransactions()
+  const isLoading = categories.length === 0 && transactions.length === 0
 
   const filteredTransactions = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -62,6 +81,10 @@ export default function TransactionList() {
     }
   }
 
+  if (isLoading) {
+    return <TransactionListSkeleton />
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-4">
@@ -100,7 +123,7 @@ export default function TransactionList() {
                     const Icon = categoryIcons[category?.icon ?? "Wallet"] ?? categoryIcons.Wallet
 
                     return (
-                      <motion.div key={transaction.id} layout transition={{ duration: 0.15 }} className="flex flex-col gap-3 rounded-lg bg-secondary/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div key={transaction.id} className="flex flex-col gap-3 rounded-lg bg-secondary/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                           <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ backgroundColor: `${category?.color ?? "#64748b"}1A`, color: category?.color ?? "#64748b" }}>
                             <Icon className="h-4 w-4" />
@@ -122,7 +145,7 @@ export default function TransactionList() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      </motion.div>
+                      </div>
                     )
                   })}
                 </div>

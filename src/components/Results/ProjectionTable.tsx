@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MonthlyRow } from "@/engine/types"
 import { cn } from "@/lib/utils"
-import { motion } from "motion/react"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Fragment, useState } from "react"
 
@@ -20,7 +19,7 @@ export default function ProjectionTable({ rows }: ProjectionTableProps) {
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Projection table</CardTitle>
@@ -90,6 +89,6 @@ export default function ProjectionTable({ rows }: ProjectionTableProps) {
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }

@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import type { FinancialParams } from "@/engine/types"
-import { motion } from "motion/react"
 
 interface FixedParamsFormProps {
   params: FinancialParams
@@ -24,7 +23,7 @@ export default function FixedParamsForm({
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Core assumptions</CardTitle>
@@ -69,6 +68,6 @@ export default function FixedParamsForm({
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }

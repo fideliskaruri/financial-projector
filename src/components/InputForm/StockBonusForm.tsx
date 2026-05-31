@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import type { StockGrant } from "@/engine/types"
-import { motion } from "motion/react"
 import { Plus, Trash2 } from "lucide-react"
 
 interface StockBonusFormProps {
@@ -18,7 +17,7 @@ export default function StockBonusForm({ stockGrants, onChange }: StockBonusForm
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.12 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -57,11 +56,8 @@ export default function StockBonusForm({ stockGrants, onChange }: StockBonusForm
             const perVest = projectedNet / vestCount
 
             return (
-              <motion.div
+              <div
                 key={grant.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.04 }}
                 className="space-y-4 rounded-2xl border p-4"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -112,12 +108,12 @@ export default function StockBonusForm({ stockGrants, onChange }: StockBonusForm
                     <Input type="number" value={grant.taxRate} onChange={(event) => updateGrant(grant.id, { taxRate: Number(event.target.value) })} />
                   </label>
                 </div>
-              </motion.div>
+              </div>
             )
           })}
           {stockGrants.length === 0 ? <p className="text-sm text-muted-foreground">No stock grant schedule configured.</p> : null}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }

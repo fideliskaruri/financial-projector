@@ -9,7 +9,6 @@ import { runProjection } from "@/engine/projectionEngine"
 import type { AllInputs } from "@/engine/types"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
 import { cn } from "@/lib/utils"
-import { motion } from "motion/react"
 import { GitCompareArrows, Save, Sparkles, Trash2, Upload } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -107,7 +106,7 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
 
   return (
     <div className="space-y-4">
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+      <div>
         <Card className="border bg-card">
           <CardHeader className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div>
@@ -165,11 +164,11 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       <BalanceChart rows={currentProjection.rows} milestones={currentProjection.milestones} comparisonSeries={comparisonSeries} />
 
-      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.04 }}>
+      <div>
         <Card className="border bg-card">
           <CardHeader>
             <CardTitle>Saved scenarios</CardTitle>
@@ -181,15 +180,12 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
                 No saved scenarios yet.
               </div>
             ) : (
-              savedScenarios.map((scenario, index) => {
+              savedScenarios.map((scenario) => {
                 const isSelected = selectedScenarioIds.includes(scenario.id)
 
                 return (
-                  <motion.div
+                  <div
                     key={scenario.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.04 }}
                     className={cn("rounded-2xl border p-4", isSelected ? "border-primary/40 bg-primary/5" : "border-border/70")}
                   >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -219,13 +215,13 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
                         </Button>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 )
               })
             )}
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   )
 }

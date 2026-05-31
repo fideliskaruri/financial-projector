@@ -7,9 +7,8 @@ import { Select } from "@/components/ui/select"
 import { addCategory, useCategories, useMonthSummary, useTransactions } from "@/hooks/useBudget"
 import { categoryIconOptions, categoryIcons, formatKES, formatMonthLabel, getMonthId, longDateFormatter, shiftMonth, slugifyCategoryName } from "@/lib/finance"
 import { cn } from "@/lib/utils"
-import { AnimatePresence, motion } from "motion/react"
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { ChevronLeft, ChevronRight, CircleDashed, Plus, X } from "lucide-react"
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -25,6 +24,31 @@ const initialCategoryForm = {
   color: "#6366f1",
   monthlyBudget: "",
   type: "need" as "need" | "want" | "savings",
+}
+
+function BudgetOverviewSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="h-12 w-52 rounded-xl border bg-card" />
+        <div className="h-11 w-36 rounded-md bg-secondary" />
+      </div>
+      <div className="flex gap-4">
+        <div className="h-5 w-24 rounded bg-secondary" />
+        <div className="h-5 w-24 rounded bg-secondary" />
+        <div className="h-5 w-20 rounded bg-secondary" />
+      </div>
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),320px]">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="h-48 rounded-2xl border bg-card" />
+          ))}
+        </div>
+        <div className="h-[280px] rounded-2xl border bg-card" />
+      </div>
+      <div className="h-60 rounded-2xl border bg-card" />
+    </div>
+  )
 }
 
 export default function BudgetOverview() {
@@ -71,6 +95,10 @@ export default function BudgetOverview() {
     }
   }
 
+  if (summary === undefined) {
+    return <BudgetOverviewSkeleton />
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -93,20 +121,20 @@ export default function BudgetOverview() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           <span className="text-muted-foreground">
-            Budget <span className="font-medium tabular-nums text-foreground">{formatKES(summary?.totalBudgeted ?? 0)}</span>
+            Budget <span className="font-medium tabular-nums text-foreground">{formatKES(summary.totalBudgeted)}</span>
           </span>
           <span className="text-muted-foreground">
-            Spent <span className="font-medium tabular-nums text-foreground">{formatKES(summary?.totalSpent ?? 0)}</span>
+            Spent <span className="font-medium tabular-nums text-foreground">{formatKES(summary.totalSpent)}</span>
           </span>
-          <span className={cn("font-medium tabular-nums", (summary?.remaining ?? 0) >= 0 ? "text-success" : "text-destructive")}>
-            {formatKES(summary?.remaining ?? 0)} left
+          <span className={cn("font-medium tabular-nums", summary.remaining >= 0 ? "text-success" : "text-destructive")}>
+            {formatKES(summary.remaining)} left
           </span>
         </div>
       </div>
 
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),320px]">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {(summary?.categories ?? []).map((categorySummary) => (
+          {summary.categories.map((categorySummary) => (
             <CategoryCard
               key={categorySummary.categoryId}
               summary={categorySummary}
@@ -176,86 +204,70 @@ export default function BudgetOverview() {
 
       <AddTransactionDialog categories={categories} />
 
-      <AnimatePresence>
-        {categoryDialogOpen ? (
-          <>
-            <motion.button
-              type="button"
-              className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => setCategoryDialogOpen(false)}
-            />
-            <motion.div
-              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-lg border bg-card p-6 shadow-2xl"
-              initial={{ opacity: 0, y: 16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              transition={{ duration: 0.15 }}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Add category</h3>
-                <Button type="button" variant="ghost" size="icon" onClick={() => setCategoryDialogOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+      {categoryDialogOpen ? (
+        <>
+          <button type="button" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" onClick={() => setCategoryDialogOpen(false)} />
+          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-lg border bg-card p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Add category</h3>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setCategoryDialogOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
 
-              <form className="space-y-4" onSubmit={handleAddCategory}>
+            <form className="space-y-4" onSubmit={handleAddCategory}>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name</label>
+                <Input value={categoryForm.name} onChange={(event) => setCategoryForm((current) => ({ ...current, name: event.target.value }))} placeholder="Category" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Name</label>
-                  <Input value={categoryForm.name} onChange={(event) => setCategoryForm((current) => ({ ...current, name: event.target.value }))} placeholder="Category" />
+                  <label className="text-sm font-medium">Budget</label>
+                  <Input
+                    value={categoryForm.monthlyBudget}
+                    onChange={(event) => setCategoryForm((current) => ({ ...current, monthlyBudget: event.target.value }))}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                  />
                 </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Budget</label>
-                    <Input
-                      value={categoryForm.monthlyBudget}
-                      onChange={(event) => setCategoryForm((current) => ({ ...current, monthlyBudget: event.target.value }))}
-                      type="number"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Type</label>
-                    <Select value={categoryForm.type} onChange={(event) => setCategoryForm((current) => ({ ...current, type: event.target.value as typeof current.type }))}>
-                      {categoryTypes.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Type</label>
+                  <Select value={categoryForm.type} onChange={(event) => setCategoryForm((current) => ({ ...current, type: event.target.value as typeof current.type }))}>
+                    {categoryTypes.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
-                <div className="grid gap-4 sm:grid-cols-[1fr,96px]">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Icon</label>
-                    <Select value={categoryForm.icon} onChange={(event) => setCategoryForm((current) => ({ ...current, icon: event.target.value }))}>
-                      {categoryIconOptions.map((icon) => (
-                        <option key={icon} value={icon}>
-                          {icon}
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Color</label>
-                    <Input value={categoryForm.color} onChange={(event) => setCategoryForm((current) => ({ ...current, color: event.target.value }))} type="color" className="h-10 p-1" />
-                  </div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-[1fr,96px]">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Icon</label>
+                  <Select value={categoryForm.icon} onChange={(event) => setCategoryForm((current) => ({ ...current, icon: event.target.value }))}>
+                    {categoryIconOptions.map((icon) => (
+                      <option key={icon} value={icon}>
+                        {icon}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Save</Button>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Color</label>
+                  <Input value={categoryForm.color} onChange={(event) => setCategoryForm((current) => ({ ...current, color: event.target.value }))} type="color" className="h-10 p-1" />
                 </div>
-              </form>
-            </motion.div>
-          </>
-        ) : null}
-      </AnimatePresence>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save</Button>
+              </div>
+            </form>
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }

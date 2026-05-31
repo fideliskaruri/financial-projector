@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import type { RecurringInflow } from "@/engine/types"
-import { motion } from "motion/react"
 import { Plus, Trash2 } from "lucide-react"
 
 const monthOptions = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -55,7 +54,7 @@ export default function RecurringInflowsForm({ inflows, onChange }: RecurringInf
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.06 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -70,11 +69,8 @@ export default function RecurringInflowsForm({ inflows, onChange }: RecurringInf
         <CardContent className="space-y-4">
           {inflows.length === 0 ? <p className="text-sm text-muted-foreground">No recurring inflows configured.</p> : null}
           {inflows.map((inflow, index) => (
-            <motion.div
+            <div
               key={inflow.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04 }}
               className="space-y-4 rounded-2xl border p-4"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -129,10 +125,10 @@ export default function RecurringInflowsForm({ inflows, onChange }: RecurringInf
                   })}
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }

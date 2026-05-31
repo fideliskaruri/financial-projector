@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { ProjectionResult } from "@/engine/types"
-import { motion } from "motion/react"
 import { GitCompareArrows, Sparkles } from "lucide-react"
 
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
@@ -21,7 +20,7 @@ export default function ScenarioToggle({ comparisonEnabled, onToggle, baselineRe
   const delta = comparisonEnd - baselineEnd
 
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -55,6 +54,6 @@ export default function ScenarioToggle({ comparisonEnabled, onToggle, baselineRe
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }

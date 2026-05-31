@@ -5,7 +5,6 @@ import { Select } from "@/components/ui/select"
 import { addBill, deleteBill, toggleBillPaid, useBills, useCategories, useTransactions } from "@/hooks/useBudget"
 import { daysUntil, formatKES, getMonthId, getNextDueDate, isBillDueInMonth } from "@/lib/finance"
 import { cn } from "@/lib/utils"
-import { AnimatePresence, motion } from "motion/react"
 import { CalendarClock, Plus, Trash2, X } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -19,6 +18,22 @@ const initialBillForm = {
   isAutoPay: false,
 }
 
+function BillsOverviewSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="h-5 w-40 rounded bg-secondary" />
+        <div className="h-11 w-24 rounded-md bg-secondary" />
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="h-24 rounded-xl border bg-card" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function BillsOverview() {
   const [billDialogOpen, setBillDialogOpen] = useState(false)
   const [billForm, setBillForm] = useState(initialBillForm)
@@ -27,6 +42,7 @@ export default function BillsOverview() {
   const bills = useBills()
   const month = getMonthId(new Date())
   const monthTransactions = useTransactions(month)
+  const isLoading = categories.length === 0 && bills.length === 0 && monthTransactions.length === 0
 
   const paidBillIds = useMemo(
     () => new Set(monthTransactions.filter((transaction) => transaction.recurringBillId).map((transaction) => transaction.recurringBillId as string)),
@@ -81,6 +97,10 @@ export default function BillsOverview() {
     }
   }
 
+  if (isLoading) {
+    return <BillsOverviewSkeleton />
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -102,12 +122,7 @@ export default function BillsOverview() {
             const proximity = daysUntil(nextDue)
 
             return (
-              <motion.div
-                key={bill.id}
-                layout
-                transition={{ duration: 0.15 }}
-                className={cn("flex flex-col gap-2 border-b border-border/50 py-3 last:border-0 lg:flex-row lg:items-center lg:justify-between")}
-              >
+              <div key={bill.id} className={cn("flex flex-col gap-2 border-b border-border/50 py-3 last:border-0 lg:flex-row lg:items-center lg:justify-between")}>
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={cn("h-2 w-2 shrink-0 rounded-full", paid ? "bg-success" : proximity < 0 ? "bg-destructive" : proximity <= 5 ? "bg-warning" : "bg-muted-foreground/30")} />
@@ -134,7 +149,7 @@ export default function BillsOverview() {
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
-              </motion.div>
+              </div>
             )
           })}
         </div>
@@ -142,81 +157,65 @@ export default function BillsOverview() {
         <div className="py-12 text-center text-sm text-muted-foreground">No bills added yet</div>
       )}
 
-      <AnimatePresence>
-        {billDialogOpen ? (
-          <>
-            <motion.button
-              type="button"
-              className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => setBillDialogOpen(false)}
-            />
-            <motion.div
-              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-lg border bg-card p-6 shadow-2xl"
-              initial={{ opacity: 0, y: 16, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              transition={{ duration: 0.15 }}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Add bill</h3>
-                <Button type="button" variant="ghost" size="icon" onClick={() => setBillDialogOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+      {billDialogOpen ? (
+        <>
+          <button type="button" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" onClick={() => setBillDialogOpen(false)} />
+          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-lg border bg-card p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Add bill</h3>
+              <Button type="button" variant="ghost" size="icon" onClick={() => setBillDialogOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
 
-              <form className="space-y-4" onSubmit={handleAddBill}>
+            <form className="space-y-4" onSubmit={handleAddBill}>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Name</label>
+                <Input value={billForm.name} onChange={(event) => setBillForm((current) => ({ ...current, name: event.target.value }))} placeholder="Bill" />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Name</label>
-                  <Input value={billForm.name} onChange={(event) => setBillForm((current) => ({ ...current, name: event.target.value }))} placeholder="Bill" />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Amount</label>
-                    <Input value={billForm.amount} onChange={(event) => setBillForm((current) => ({ ...current, amount: event.target.value }))} type="number" min="0" step="0.01" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Due day</label>
-                    <Input value={billForm.dueDay} onChange={(event) => setBillForm((current) => ({ ...current, dueDay: event.target.value }))} type="number" min="1" max="31" />
-                  </div>
+                  <label className="text-sm font-medium">Amount</label>
+                  <Input value={billForm.amount} onChange={(event) => setBillForm((current) => ({ ...current, amount: event.target.value }))} type="number" min="0" step="0.01" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select value={billForm.categoryId} onChange={(event) => setBillForm((current) => ({ ...current, categoryId: event.target.value }))}>
-                    <option value="">Select</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Select>
+                  <label className="text-sm font-medium">Due day</label>
+                  <Input value={billForm.dueDay} onChange={(event) => setBillForm((current) => ({ ...current, dueDay: event.target.value }))} type="number" min="1" max="31" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Frequency</label>
-                  <Select value={billForm.frequency} onChange={(event) => setBillForm((current) => ({ ...current, frequency: event.target.value as typeof current.frequency }))}>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="annual">Annual</option>
-                  </Select>
-                </div>
-                <label className="flex items-center gap-3 text-sm font-medium">
-                  <input type="checkbox" checked={billForm.isAutoPay} onChange={(event) => setBillForm((current) => ({ ...current, isAutoPay: event.target.checked }))} className="h-4 w-4 rounded border-border text-primary" />
-                  Auto-pay
-                </label>
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setBillDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit">Save</Button>
-                </div>
-              </form>
-            </motion.div>
-          </>
-        ) : null}
-      </AnimatePresence>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <Select value={billForm.categoryId} onChange={(event) => setBillForm((current) => ({ ...current, categoryId: event.target.value }))}>
+                  <option value="">Select</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Frequency</label>
+                <Select value={billForm.frequency} onChange={(event) => setBillForm((current) => ({ ...current, frequency: event.target.value as typeof current.frequency }))}>
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="annual">Annual</option>
+                </Select>
+              </div>
+              <label className="flex items-center gap-3 text-sm font-medium">
+                <input type="checkbox" checked={billForm.isAutoPay} onChange={(event) => setBillForm((current) => ({ ...current, isAutoPay: event.target.checked }))} className="h-4 w-4 rounded border-border text-primary" />
+                Auto-pay
+              </label>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setBillDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Save</Button>
+              </div>
+            </form>
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }

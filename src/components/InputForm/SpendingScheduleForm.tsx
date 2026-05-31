@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import type { SpendingOverride } from "@/engine/types"
-import { motion } from "motion/react"
 import { Plus, Trash2 } from "lucide-react"
 
 const months = [
@@ -49,7 +48,7 @@ export default function SpendingScheduleForm({ overrides, onChange }: SpendingSc
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.18 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -63,11 +62,8 @@ export default function SpendingScheduleForm({ overrides, onChange }: SpendingSc
         </CardHeader>
         <CardContent className="space-y-4">
           {overrides.map((override, index) => (
-            <motion.div
+            <div
               key={override.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.04 }}
               className="grid gap-4 rounded-2xl border p-4 md:grid-cols-[auto,1fr,1fr,1fr,auto] md:items-end"
             >
               <Badge variant="secondary" className="w-fit">Step {index + 1}</Badge>
@@ -97,11 +93,11 @@ export default function SpendingScheduleForm({ overrides, onChange }: SpendingSc
               <Button type="button" variant="ghost" size="icon" onClick={() => onChange(overrides.filter((item) => item.id !== override.id))}>
                 <Trash2 className="h-4 w-4" />
               </Button>
-            </motion.div>
+            </div>
           ))}
           {overrides.length === 0 ? <p className="text-sm text-muted-foreground">No spending overrides configured.</p> : null}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }

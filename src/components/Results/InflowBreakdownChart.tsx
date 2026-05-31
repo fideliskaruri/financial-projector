@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { MonthlyRow } from "@/engine/types"
-import { motion } from "motion/react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
@@ -32,7 +31,7 @@ export default function InflowBreakdownChart({ rows }: InflowBreakdownChartProps
   })
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.03 }}>
+    <div>
       <Card className="border bg-card">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -65,6 +64,6 @@ export default function InflowBreakdownChart({ rows }: InflowBreakdownChartProps
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   )
 }
