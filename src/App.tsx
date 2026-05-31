@@ -7,9 +7,11 @@ import MilestoneMarkers from "@/components/Results/MilestoneMarkers"
 import SummaryCards from "@/components/Results/SummaryCards"
 import TransactionList from "@/components/Transactions/TransactionList"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DEFAULT_INPUTS } from "@/data/defaults"
 import type { AllInputs } from "@/engine/types"
+import { useActualSpendingDetails } from "@/hooks/useActualSpending"
 import { useMonthSummary } from "@/hooks/useBudget"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
 import { useProjection } from "@/hooks/useProjection"
@@ -18,7 +20,7 @@ import { cn } from "@/lib/utils"
 import type { AppTab } from "@/types/navigation"
 import { decodeInputsFromUrl, encodeInputsToUrl } from "@/utils/urlEncoding"
 import { motion } from "motion/react"
-import { lazy, Suspense, useEffect, useRef } from "react"
+import { lazy, Suspense, useEffect, useMemo, useRef } from "react"
 import { toast } from "sonner"
 
 const BalanceChart = lazy(() => import("@/components/Results/BalanceChart"))
@@ -36,6 +38,7 @@ const StockBonusForm = lazy(() => import("@/components/InputForm/StockBonusForm"
 const suspenseFallback = <div className="py-12 text-center text-sm text-muted-foreground">Loading...</div>
 const balanceChartFallback = <div className="h-[300px] animate-pulse rounded-lg bg-secondary lg:h-[360px]" />
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
+const actualSpendingWindowMonths = 3
 const validTabs: AppTab[] = ["dashboard", "budget", "transactions", "bills", "projections", "settings"]
 
 function cloneInputs(value: AllInputs): AllInputs {
@@ -62,11 +65,21 @@ export default function App() {
   const [inputs, setInputs] = useLocalStorage<AllInputs>("financial-projector-inputs", cloneInputs(DEFAULT_INPUTS))
   const [storedActiveTab, setStoredActiveTab] = useLocalStorage<string>("financial-projector-active-tab", "dashboard")
   const [darkMode, setDarkMode] = useLocalStorage<boolean>("financial-projector-dark-mode", true)
+  const [dataMode, setDataMode] = useLocalStorage<"actual" | "simulation">("financial-projector-data-mode", "simulation")
   const sharedScenarioLoadedRef = useRef(false)
 
   const activeTab = normalizeTab(storedActiveTab)
   const monthSummary = useMonthSummary(getMonthId(new Date()))
-  const projection = useProjection(inputs)
+  const actualSpending = useActualSpendingDetails(actualSpendingWindowMonths)
+  const effectiveMonthlySpending = dataMode === "actual" ? actualSpending.value ?? inputs.params.monthlySpending : inputs.params.monthlySpending
+  const projectionInputs = useMemo(
+    () =>
+      dataMode === "actual" && effectiveMonthlySpending !== inputs.params.monthlySpending
+        ? { ...inputs, params: { ...inputs.params, monthlySpending: effectiveMonthlySpending } }
+        : inputs,
+    [dataMode, effectiveMonthlySpending, inputs],
+  )
+  const projection = useProjection(projectionInputs)
 
   useEffect(() => {
     if (storedActiveTab !== activeTab) {
@@ -95,7 +108,26 @@ export default function App() {
   }, [setInputs])
 
   const finalRow = projection.rows.at(-1)
-  const growthPercent = inputs.params.startingBalance > 0 && finalRow ? ((finalRow.endBalance - inputs.params.startingBalance) / inputs.params.startingBalance) * 100 : 0
+  const growthPercent =
+    projectionInputs.params.startingBalance > 0 && finalRow
+      ? ((finalRow.endBalance - projectionInputs.params.startingBalance) / projectionInputs.params.startingBalance) * 100
+      : 0
+  const dashboardModeLabel =
+    dataMode === "actual"
+      ? actualSpending.source === "transactions"
+        ? "Using actual spending"
+        : actualSpending.source === "budget"
+          ? "Using budget totals"
+          : "Using simulation value"
+      : "Simulation mode"
+  const actualSpendingHint =
+    dataMode === "actual"
+      ? actualSpending.source === "transactions" && actualSpending.value !== undefined
+        ? `Based on your last ${actualSpendingWindowMonths} months: ${formatKES(actualSpending.value)}`
+        : actualSpending.source === "budget" && actualSpending.value !== undefined
+          ? `No spending data yet, using budget totals: ${formatKES(actualSpending.value)}`
+          : "No spending data yet, using your simulation value."
+      : undefined
 
   const handleReset = () => {
     setInputs(cloneInputs(DEFAULT_INPUTS))
@@ -166,7 +198,12 @@ export default function App() {
               <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-6">
                 <div>
                   <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projected Balance · {finalRow?.dateStr ?? ""}</p>
-                  <p className="mt-1 text-4xl font-bold tabular-nums tracking-tight lg:text-5xl">{currency.format(finalRow?.endBalance ?? 0)}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <p className="text-4xl font-bold tabular-nums tracking-tight lg:text-5xl">{currency.format(finalRow?.endBalance ?? 0)}</p>
+                    <Badge variant={dataMode === "actual" ? "success" : "secondary"} className="text-xs">
+                      {dashboardModeLabel}
+                    </Badge>
+                  </div>
                   <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                     <span className="text-muted-foreground">
                       Interest <span className="font-medium tabular-nums text-foreground">{currency.format(projection.rows.reduce((sum, row) => sum + row.interest, 0))}</span>
@@ -233,16 +270,44 @@ export default function App() {
               <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-4">
                 <Suspense fallback={suspenseFallback}>
                   <Card className="border bg-card">
+                    <CardHeader className="gap-4">
+                      <div className="space-y-1">
+                        <CardTitle>Data source</CardTitle>
+                        <CardDescription>Choose whether projections use your saved simulation assumptions or live spending data.</CardDescription>
+                      </div>
+                      <Tabs value={dataMode} onValueChange={(value) => setDataMode(value as "actual" | "simulation")}>
+                        <TabsList className="grid h-auto w-full grid-cols-2 rounded-full p-1 sm:inline-grid sm:w-auto">
+                          <TabsTrigger value="simulation" className="rounded-full px-4 py-2">
+                            Simulation mode
+                          </TabsTrigger>
+                          <TabsTrigger value="actual" className="rounded-full px-4 py-2">
+                            Actual data
+                          </TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </CardHeader>
+                  </Card>
+
+                  <Card className="border bg-card">
                     <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <CardTitle>Projection spending</CardTitle>
-                      <Badge variant={(monthSummary?.totalSpent ?? 0) > inputs.params.monthlySpending ? "warning" : "success"}>
-                        Actual this month: {formatKES(monthSummary?.totalSpent ?? 0)} / {formatKES(inputs.params.monthlySpending)}
+                      <div className="space-y-1">
+                        <CardTitle>Projection spending</CardTitle>
+                        {actualSpendingHint ? <CardDescription>{actualSpendingHint}</CardDescription> : null}
+                      </div>
+                      <Badge variant={(monthSummary?.totalSpent ?? 0) > effectiveMonthlySpending ? "warning" : "success"}>
+                        Actual this month: {formatKES(monthSummary?.totalSpent ?? 0)} / {formatKES(effectiveMonthlySpending)}
                       </Badge>
                     </CardHeader>
                   </Card>
 
                   <div className="grid gap-4 xl:grid-cols-2">
-                    <FixedParamsForm params={inputs.params} onChange={(params) => setInputs((current) => ({ ...current, params }))} />
+                    <FixedParamsForm
+                      params={inputs.params}
+                      spendingDisabled={dataMode === "actual"}
+                      spendingDisplayValue={effectiveMonthlySpending}
+                      spendingHint={actualSpendingHint}
+                      onChange={(params) => setInputs((current) => ({ ...current, params }))}
+                    />
                     <ProjectionRangeForm
                       startDate={inputs.params.startDate}
                       endDate={inputs.params.endDate}

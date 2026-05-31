@@ -7,9 +7,18 @@ import { motion } from "motion/react"
 interface FixedParamsFormProps {
   params: FinancialParams
   onChange: (params: FinancialParams) => void
+  spendingDisabled?: boolean
+  spendingDisplayValue?: number
+  spendingHint?: string
 }
 
-export default function FixedParamsForm({ params, onChange }: FixedParamsFormProps) {
+export default function FixedParamsForm({
+  params,
+  onChange,
+  spendingDisabled = false,
+  spendingDisplayValue,
+  spendingHint,
+}: FixedParamsFormProps) {
   const setValue = (key: keyof FinancialParams, value: number) => {
     onChange({ ...params, [key]: value })
   }
@@ -29,7 +38,13 @@ export default function FixedParamsForm({ params, onChange }: FixedParamsFormPro
 
           <label className="space-y-2 text-sm">
             <span className="font-medium text-muted-foreground">Monthly spending</span>
-            <Input type="number" value={params.monthlySpending} onChange={(event) => setValue("monthlySpending", Number(event.target.value))} />
+            <Input
+              type="number"
+              value={spendingDisplayValue ?? params.monthlySpending}
+              disabled={spendingDisabled}
+              onChange={(event) => setValue("monthlySpending", Number(event.target.value))}
+            />
+            {spendingHint ? <p className="text-xs text-muted-foreground">{spendingHint}</p> : null}
           </label>
 
           <label className="space-y-2 text-sm">
