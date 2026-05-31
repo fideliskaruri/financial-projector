@@ -9,7 +9,7 @@ import { categoryIconOptions, categoryIcons, formatKES, formatMonthLabel, getMon
 import { cn } from "@/lib/utils"
 import { AnimatePresence, motion } from "motion/react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, CircleDashed, Plus, X } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -90,27 +90,18 @@ export default function BudgetOverview() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border bg-card">
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Budgeted</p>
-            <p className="mt-2 text-2xl font-semibold tabular-nums">{formatKES(summary?.totalBudgeted ?? 0)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border bg-card">
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Spent</p>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-foreground">{formatKES(summary?.totalSpent ?? 0)}</p>
-          </CardContent>
-        </Card>
-        <Card className="border bg-card">
-          <CardContent className="p-5">
-            <p className="text-sm text-muted-foreground">Remaining</p>
-            <p className={cn("mt-2 text-2xl font-semibold tabular-nums", (summary?.remaining ?? 0) >= 0 ? "text-emerald-500" : "text-destructive")}>
-              {formatKES(summary?.remaining ?? 0)}
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 text-sm">
+          <span className="text-muted-foreground">
+            Budget <span className="font-medium tabular-nums text-foreground">{formatKES(summary?.totalBudgeted ?? 0)}</span>
+          </span>
+          <span className="text-muted-foreground">
+            Spent <span className="font-medium tabular-nums text-foreground">{formatKES(summary?.totalSpent ?? 0)}</span>
+          </span>
+          <span className={cn("font-medium tabular-nums", (summary?.remaining ?? 0) >= 0 ? "text-success" : "text-destructive")}>
+            {formatKES(summary?.remaining ?? 0)} left
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),320px]">
@@ -125,7 +116,7 @@ export default function BudgetOverview() {
           ))}
         </div>
 
-        <Card className="border bg-card">
+        <Card className="bg-card">
           <CardHeader>
             <CardTitle>Spending mix</CardTitle>
           </CardHeader>
@@ -142,15 +133,16 @@ export default function BudgetOverview() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-full items-center justify-center rounded-2xl border border-dashed text-sm text-muted-foreground">
-                No spending yet
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-muted-foreground">
+                <CircleDashed className="h-8 w-8 opacity-30" />
+                <p className="text-sm">No spending yet</p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card className="border bg-card">
+      <Card className="bg-card">
         <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle>{selectedCategory?.name ?? "Transactions"}</CardTitle>
           <span className="text-sm text-muted-foreground">{formatMonthLabel(month)}</span>
@@ -161,7 +153,7 @@ export default function BudgetOverview() {
               {selectedTransactions.map((transaction) => {
                 const Icon = categoryIcons[selectedCategory?.icon ?? "Wallet"] ?? categoryIcons.Wallet
                 return (
-                  <div key={transaction.id} className="flex items-center justify-between gap-3 rounded-xl border bg-background px-4 py-3">
+                  <div key={transaction.id} className="flex items-center justify-between gap-3 rounded-lg bg-secondary/50 px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${selectedCategory?.color ?? "#64748b"}1A`, color: selectedCategory?.color ?? "#64748b" }}>
                         <Icon className="h-4 w-4" />
@@ -177,9 +169,7 @@ export default function BudgetOverview() {
               })}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-              No transactions
-            </div>
+            <div className="py-8 text-center text-sm text-muted-foreground">No transactions this month</div>
           )}
         </CardContent>
       </Card>
@@ -199,7 +189,7 @@ export default function BudgetOverview() {
               onClick={() => setCategoryDialogOpen(false)}
             />
             <motion.div
-              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border bg-card p-6 shadow-2xl"
+              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-lg border bg-card p-6 shadow-2xl"
               initial={{ opacity: 0, y: 16, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.98 }}

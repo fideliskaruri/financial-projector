@@ -28,13 +28,12 @@ import { formatKES, getMonthId } from "@/lib/finance"
 import { cn } from "@/lib/utils"
 import type { AppTab } from "@/types/navigation"
 import { decodeInputsFromUrl, encodeInputsToUrl } from "@/utils/urlEncoding"
-import { AnimatePresence, motion } from "motion/react"
+import { motion } from "motion/react"
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
 
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 const validTabs: AppTab[] = ["dashboard", "budget", "transactions", "bills", "projections", "settings"]
-const pageTransition = { duration: 0.15 }
 
 function cloneInputs(value: AllInputs): AllInputs {
   return JSON.parse(JSON.stringify(value)) as AllInputs
@@ -159,34 +158,32 @@ export default function App() {
         <BottomNav activeTab={activeTab} onSelectTab={setActiveTab} />
 
         <main className="px-4 py-4 pb-20 sm:px-6 lg:px-8 lg:pl-60 lg:pb-0">
-          <AnimatePresence mode="wait">
+          <>
             {activeTab === "dashboard" ? (
-              <motion.div key="dashboard" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={pageTransition} className="space-y-4">
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  <div className="rounded-xl border bg-card p-4">
-                    <p className="text-xs font-medium text-muted-foreground">End Balance</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums">{currency.format(finalRow?.endBalance ?? 0)}</p>
-                  </div>
-                  <div className="rounded-xl border bg-card p-4">
-                    <p className="text-xs font-medium text-muted-foreground">Total Interest</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums">{currency.format(projection.rows.reduce((sum, row) => sum + row.interest, 0))}</p>
-                  </div>
-                  <div className="rounded-xl border bg-card p-4">
-                    <p className="text-xs font-medium text-muted-foreground">Growth</p>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-primary">{growthPercent.toFixed(0)}%</p>
-                  </div>
-                  <div className="rounded-xl border bg-card p-4">
-                    <p className="text-xs font-medium text-muted-foreground">Budget Used</p>
-                    <p
-                      className={cn(
-                        "mt-1 text-xl font-bold tabular-nums",
-                        (monthSummary?.totalBudgeted ?? 0) > 0 && (monthSummary?.totalSpent ?? 0) > (monthSummary?.totalBudgeted ?? 0)
-                          ? "text-destructive"
-                          : "text-foreground",
-                      )}
-                    >
-                      {(monthSummary?.totalBudgeted ?? 0) > 0 ? `${Math.round(((monthSummary?.totalSpent ?? 0) / (monthSummary?.totalBudgeted ?? 1)) * 100)}%` : "—"}
-                    </p>
+              <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-6">
+                <div>
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projected Balance · {finalRow?.dateStr ?? ""}</p>
+                  <p className="mt-1 text-4xl font-bold tabular-nums tracking-tight lg:text-5xl">{currency.format(finalRow?.endBalance ?? 0)}</p>
+                  <div className="mt-3 flex items-center gap-4 text-sm">
+                    <span className="text-muted-foreground">
+                      Interest <span className="font-medium tabular-nums text-foreground">{currency.format(projection.rows.reduce((sum, row) => sum + row.interest, 0))}</span>
+                    </span>
+                    <span className="text-muted-foreground">
+                      Growth <span className="font-medium tabular-nums text-success">{growthPercent.toFixed(0)}%</span>
+                    </span>
+                    {(monthSummary?.totalBudgeted ?? 0) > 0 ? (
+                      <span className="text-muted-foreground">
+                        Budget used{" "}
+                        <span
+                          className={cn(
+                            "font-medium tabular-nums",
+                            (monthSummary?.totalSpent ?? 0) > (monthSummary?.totalBudgeted ?? 0) ? "text-destructive" : "text-foreground",
+                          )}
+                        >
+                          {Math.round(((monthSummary?.totalSpent ?? 0) / (monthSummary?.totalBudgeted ?? 1)) * 100)}%
+                        </span>
+                      </span>
+                    ) : null}
                   </div>
                 </div>
                 <BalanceChart rows={projection.rows} milestones={projection.milestones} />
@@ -198,25 +195,25 @@ export default function App() {
             ) : null}
 
             {activeTab === "budget" ? (
-              <motion.div key="budget" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={pageTransition}>
+              <motion.div key="budget" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}>
                 <BudgetOverview />
               </motion.div>
             ) : null}
 
             {activeTab === "transactions" ? (
-              <motion.div key="transactions" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={pageTransition}>
+              <motion.div key="transactions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}>
                 <TransactionList />
               </motion.div>
             ) : null}
 
             {activeTab === "bills" ? (
-              <motion.div key="bills" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={pageTransition}>
+              <motion.div key="bills" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }}>
                 <BillsOverview />
               </motion.div>
             ) : null}
 
             {activeTab === "projections" ? (
-              <motion.div key="projections" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={pageTransition} className="space-y-4">
+              <motion.div key="projections" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-4">
                 <ScenarioManager inputs={inputs} onLoadScenario={(loadedInputs) => setInputs(loadedInputs)} onOpenSettings={() => setActiveTab("settings")} />
                 <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
                   <ProjectionTable rows={projection.rows} />
@@ -226,7 +223,7 @@ export default function App() {
             ) : null}
 
             {activeTab === "settings" ? (
-              <motion.div key="settings" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={pageTransition} className="space-y-4">
+              <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-4">
                 <Card className="border bg-card">
                   <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <CardTitle>Projection spending</CardTitle>
@@ -255,7 +252,7 @@ export default function App() {
                 </div>
               </motion.div>
             ) : null}
-          </AnimatePresence>
+          </>
         </main>
       </div>
     </div>

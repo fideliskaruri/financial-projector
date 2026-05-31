@@ -17,45 +17,6 @@ const navItems: NavItem[] = [
   { id: "settings", label: "Settings", icon: Settings2 },
 ]
 
-interface SidebarContentProps {
-  activeTab: AppTab
-  onSelectTab: (tab: AppTab) => void
-}
-
-function SidebarContent({ activeTab, onSelectTab }: SidebarContentProps) {
-  return (
-    <div className="flex h-full flex-col p-3">
-      <div className="flex items-center justify-between px-2 py-3">
-        <span className="text-base font-bold tracking-tight">FinManager</span>
-      </div>
-
-      <nav className="mt-2 space-y-0.5">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive = activeTab === item.id
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                onSelectTab(item.id)
-              }}
-              className={cn(
-                "relative flex w-full items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm transition-colors",
-                isActive ? "bg-primary/8 font-semibold text-foreground" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
-              )}
-            >
-              {isActive ? <span className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" /> : null}
-              <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
-            </button>
-          )
-        })}
-      </nav>
-    </div>
-  )
-}
-
 interface SidebarProps {
   activeTab: AppTab
   onSelectTab: (tab: AppTab) => void
@@ -63,8 +24,32 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-56 border-r bg-card lg:block">
-      <SidebarContent activeTab={activeTab} onSelectTab={onSelectTab} />
+    <aside className="fixed inset-y-0 left-0 z-20 hidden w-56 border-r border-border/50 bg-background lg:flex lg:flex-col">
+      <div className="px-4 py-5">
+        <span className="text-sm font-semibold tracking-tight">FinManager</span>
+      </div>
+      <nav className="flex-1 space-y-0.5 px-3">
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const isActive = activeTab === item.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelectTab(item.id)}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] transition-colors",
+                isActive
+                  ? "bg-secondary font-medium text-foreground"
+                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              {item.label}
+            </button>
+          )
+        })}
+      </nav>
     </aside>
   )
 }

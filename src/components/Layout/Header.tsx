@@ -24,30 +24,24 @@ export default function Header({ activeTab, darkMode, onExport, onReset, onShare
   const showProjectionActions = activeTab === "projections" || activeTab === "settings"
 
   return (
-    <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur">
-      <div className="flex h-12 items-center justify-between gap-3 px-4 sm:px-6 lg:pl-60 lg:pr-8">
-        <div className="flex items-center gap-2">
-          <h1 className="text-base font-medium tracking-tight">{pageTitles[activeTab]}</h1>
-        </div>
-
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm">
+      <div className="flex h-12 items-center justify-between px-4 sm:px-6 lg:pl-60 lg:pr-8">
+        <h1 className="text-sm font-medium text-foreground">{pageTitles[activeTab]}</h1>
+        <div className="flex items-center gap-1">
           {showProjectionActions ? (
             <>
-              <Button type="button" variant="outline" className="h-9 w-9 px-0 sm:w-auto sm:px-3" onClick={onReset} aria-label="Reset assumptions">
+              <Button type="button" variant="ghost" size="icon" onClick={onReset} aria-label="Reset">
                 <RotateCcw className="h-4 w-4" />
-                <span className="hidden sm:inline">Reset</span>
               </Button>
-              <Button type="button" variant="outline" className="h-9 w-9 px-0 sm:w-auto sm:px-3" onClick={onShare} aria-label="Share scenario">
+              <Button type="button" variant="ghost" size="icon" onClick={onShare} aria-label="Share">
                 <Share2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Share</span>
               </Button>
-              <Button type="button" variant="secondary" className="h-9 w-9 px-0 sm:w-auto sm:px-3" onClick={onExport} aria-label="Export CSV">
+              <Button type="button" variant="ghost" size="icon" onClick={onExport} aria-label="Export">
                 <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">Export</span>
               </Button>
             </>
           ) : null}
-          <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={onToggleDarkMode} aria-label="Toggle dark mode">
+          <Button type="button" variant="ghost" size="icon" onClick={onToggleDarkMode} aria-label="Toggle theme">
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
         </div>

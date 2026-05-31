@@ -1,9 +1,6 @@
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone } from "@/engine/types"
-import { motion } from "motion/react"
-import { Flag, Target } from "lucide-react"
 
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 
@@ -13,33 +10,23 @@ interface MilestoneMarkersProps {
 
 export default function MilestoneMarkers({ milestones }: MilestoneMarkersProps) {
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15, delay: 0.06 }}>
-      <Card className="border bg-card">
-        <CardHeader>
-          <CardTitle>Milestones</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+    <Card>
+      <CardContent className="p-5">
+        <h3 className="mb-4 text-sm font-medium">Milestones</h3>
+        <div className="space-y-0">
           {milestones.map((milestone) => (
-            <div key={milestone.name} className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-primary/10 p-2 text-primary">
-                  {milestone.reachedDate ? <Flag className="h-4 w-4" /> : <Target className="h-4 w-4" />}
-                </div>
-                <div>
-                  <p className="font-medium">{milestone.name}</p>
-                  <p className="text-sm text-muted-foreground">Target balance: {currency.format(milestone.targetAmount)}</p>
-                </div>
+            <div key={milestone.name} className="flex items-center justify-between border-b border-border/50 py-3 last:border-0">
+              <div>
+                <p className="text-sm font-medium">{milestone.name}</p>
+                <p className="text-xs text-muted-foreground">{currency.format(milestone.targetAmount)}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge variant={milestone.reachedDate ? "success" : "secondary"}>{milestone.reachedDate ? "Projected" : "Pending"}</Badge>
-                <span className="text-sm text-muted-foreground">
-                  {milestone.reachedDate ? monthYearToString(milestone.reachedDate) : "Outside selected range"}
-                </span>
-              </div>
+              <span className="text-xs text-muted-foreground">
+                {milestone.reachedDate ? monthYearToString(milestone.reachedDate) : "—"}
+              </span>
             </div>
           ))}
-        </CardContent>
-      </Card>
-    </motion.div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

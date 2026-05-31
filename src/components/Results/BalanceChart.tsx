@@ -1,13 +1,9 @@
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone, MonthlyRow } from "@/engine/types"
-import { motion } from "motion/react"
 import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
+  Area,
+  AreaChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -17,7 +13,6 @@ import {
 
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 const currencyCompact = new Intl.NumberFormat("en-KE", { notation: "compact", maximumFractionDigits: 1 })
-const comparisonColors = ["var(--color-chart-2)", "var(--color-chart-3)", "var(--color-chart-4)", "var(--color-chart-5)"]
 
 export interface BalanceChartSeries {
   name: string
@@ -37,72 +32,86 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
   const seriesMaps = normalizedSeries.map((entry) => [entry.key, new Map(entry.rows.map((row) => [row.dateStr, row.endBalance]))] as const)
   const data = rows.map((row) => {
     const nextRow: Record<string, number | string | undefined> = { date: row.dateStr, baseline: row.endBalance }
-
     for (const [key, valueMap] of seriesMaps) {
       nextRow[key] = valueMap.get(row.dateStr)
     }
-
     return nextRow
   })
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
-      <Card className="border bg-card">
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Balance trajectory</CardTitle>
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">Current</Badge>
-            {normalizedSeries.map((entry) => (
-              <Badge key={entry.key} variant="outline">{entry.name}</Badge>
-            ))}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[340px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ left: 12, right: 12, top: 8, bottom: 8 }}>
-                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} minTickGap={28} />
-                <YAxis
-                  tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={80}
-                  tickFormatter={(value) => currencyCompact.format(Number(value))}
-                />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 16 }}
-                  formatter={(value, name) => [currency.format(Number(value ?? 0)), String(name)]}
-                />
-                <Legend />
-                {milestones
-                  .filter((milestone) => milestone.reachedDate)
-                  .map((milestone) => (
-                    <ReferenceLine
-                      key={milestone.name}
-                      x={monthYearToString(milestone.reachedDate!)}
-                      stroke="var(--color-warning)"
-                      strokeDasharray="4 4"
-                    />
-                  ))}
-                <Line type="monotone" dataKey="baseline" name="Current" stroke="var(--color-chart-1)" strokeWidth={3} dot={false} />
-                {normalizedSeries.map((entry, index) => (
-                  <Line
-                    key={entry.key}
-                    type="monotone"
-                    dataKey={entry.key}
-                    name={entry.name}
-                    stroke={comparisonColors[index % comparisonColors.length]}
-                    strokeDasharray="6 4"
-                    strokeWidth={2.5}
-                    dot={false}
+    <Card>
+      <CardContent className="p-0">
+        <div className="h-[300px] w-full lg:h-[360px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data} margin={{ left: 0, right: 0, top: 8, bottom: 0 }}>
+              <defs>
+                <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.2} />
+                  <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="date"
+                tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                minTickGap={40}
+                dy={8}
+              />
+              <YAxis
+                tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+                tickLine={false}
+                axisLine={false}
+                width={70}
+                tickFormatter={(value) => currencyCompact.format(Number(value))}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--color-card)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
+                  fontSize: 12,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                }}
+                formatter={(value) => [currency.format(Number(value ?? 0)), "Balance"]}
+                labelStyle={{ color: "var(--color-muted-foreground)", fontSize: 11 }}
+              />
+              {milestones
+                .filter((milestone) => milestone.reachedDate)
+                .map((milestone) => (
+                  <ReferenceLine
+                    key={milestone.name}
+                    x={monthYearToString(milestone.reachedDate!)}
+                    stroke="var(--color-muted-foreground)"
+                    strokeDasharray="3 3"
+                    strokeOpacity={0.4}
                   />
                 ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+              <Area
+                type="natural"
+                dataKey="baseline"
+                stroke="var(--color-chart-1)"
+                strokeWidth={2.5}
+                fill="url(#balanceGradient)"
+                dot={false}
+                activeDot={{ r: 4, fill: "var(--color-chart-1)", strokeWidth: 0 }}
+              />
+              {normalizedSeries.map((entry, index) => (
+                <Area
+                  key={entry.key}
+                  type="natural"
+                  dataKey={entry.key}
+                  stroke={`var(--color-chart-${(index % 4) + 2})`}
+                  strokeWidth={2}
+                  strokeDasharray="4 4"
+                  fill="transparent"
+                  dot={false}
+                />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

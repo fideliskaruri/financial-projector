@@ -10,13 +10,13 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
-const navItems: { id: AppTab; label: string; icon: LucideIcon }[] = [
-  { id: "dashboard", label: "Home", icon: LayoutDashboard },
-  { id: "budget", label: "Budget", icon: PiggyBank },
-  { id: "transactions", label: "Activity", icon: ArrowRightLeft },
-  { id: "bills", label: "Bills", icon: CreditCard },
-  { id: "projections", label: "Forecast", icon: TrendingUp },
-  { id: "settings", label: "Settings", icon: Settings2 },
+const navItems: { id: AppTab; icon: LucideIcon }[] = [
+  { id: "dashboard", icon: LayoutDashboard },
+  { id: "budget", icon: PiggyBank },
+  { id: "transactions", icon: ArrowRightLeft },
+  { id: "bills", icon: CreditCard },
+  { id: "projections", icon: TrendingUp },
+  { id: "settings", icon: Settings2 },
 ]
 
 interface BottomNavProps {
@@ -26,8 +26,8 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)] lg:hidden">
-      <div className="flex items-center justify-around px-1 py-1.5">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background/80 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <div className="flex items-center justify-around py-2">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.id
@@ -37,12 +37,12 @@ export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
               type="button"
               onClick={() => onSelectTab(item.id)}
               className={cn(
-                "flex flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground",
+                "flex flex-col items-center gap-1 rounded-lg p-2 transition-colors",
+                isActive ? "text-foreground" : "text-muted-foreground",
               )}
             >
               <Icon className={cn("h-5 w-5", isActive && "stroke-[2.5]")} />
-              <span>{item.label}</span>
+              {isActive ? <span className="h-1 w-1 rounded-full bg-foreground" /> : null}
             </button>
           )
         })}
