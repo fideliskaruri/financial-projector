@@ -26,8 +26,8 @@ interface BottomNavProps {
 
 export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/50 bg-background/80 backdrop-blur-sm pb-[env(safe-area-inset-bottom)] lg:hidden">
-      <div className="flex items-center justify-around py-2">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-sm lg:hidden">
+      <div className="flex items-center justify-around px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = activeTab === item.id
@@ -37,7 +37,7 @@ export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
               type="button"
               onClick={() => onSelectTab(item.id)}
               className={cn(
-                "flex flex-col items-center gap-1 rounded-lg p-2 transition-colors",
+                "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 rounded-lg p-2 transition-colors",
                 isActive ? "text-foreground" : "text-muted-foreground",
               )}
             >

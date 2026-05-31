@@ -87,7 +87,7 @@ export default function BillsOverview() {
         <p className="text-sm text-muted-foreground">
           {dueThisMonth.length} bills · {formatKES(dueTotal)} this month
         </p>
-        <Button type="button" variant="ghost" size="sm" onClick={() => setBillDialogOpen(true)}>
+        <Button type="button" variant="ghost" size="sm" className="min-h-11 px-4 text-sm" onClick={() => setBillDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Add
         </Button>
@@ -126,11 +126,11 @@ export default function BillsOverview() {
                   <div className="min-w-28 text-left lg:text-right">
                     <p className="font-semibold tabular-nums">{formatKES(bill.amount)}</p>
                   </div>
-                  <Button type="button" variant={paid ? "default" : "outline"} onClick={() => void handleTogglePaid(bill.id)}>
+                  <Button type="button" variant={paid ? "default" : "outline"} className="min-h-11" onClick={() => void handleTogglePaid(bill.id)}>
                     <CalendarClock className="h-4 w-4" />
                     {paid ? "Paid" : "Mark Paid"}
                   </Button>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => void handleDeleteBill(bill.id)}>
+                  <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => void handleDeleteBill(bill.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

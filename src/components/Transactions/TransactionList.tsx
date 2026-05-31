@@ -65,12 +65,12 @@ export default function TransactionList() {
   return (
     <div className="space-y-4">
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-60 flex-1">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr),11rem,10rem,10rem,auto] xl:items-center">
+          <div className="relative min-w-0 xl:min-w-60 xl:flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search" className="pl-9" />
+            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search" className="h-11 pl-9 text-base" />
           </div>
-          <Select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="w-44">
+          <Select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)} className="h-11 w-full text-base xl:w-44">
             <option value="all">All categories</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -78,9 +78,9 @@ export default function TransactionList() {
               </option>
             ))}
           </Select>
-          <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="w-40" />
-          <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="w-40" />
-          <Button type="button" variant="outline" onClick={() => setCsvOpen(true)}>
+          <Input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="h-11 w-full text-base xl:w-40" />
+          <Input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="h-11 w-full text-base xl:w-40" />
+          <Button type="button" variant="outline" className="min-h-11 w-full xl:w-auto" onClick={() => setCsvOpen(true)}>
             <Upload className="h-4 w-4" />
             Import CSV
           </Button>
@@ -113,12 +113,12 @@ export default function TransactionList() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3 sm:justify-end">
-                          <p className="min-w-28 text-right font-semibold tabular-nums">{formatKES(transaction.amount)}</p>
-                          <Button type="button" variant="ghost" size="icon" onClick={() => setEditingTransaction(transaction)}>
+                        <div className="flex items-center gap-2 sm:gap-3 sm:justify-end">
+                          <p className="min-w-0 flex-1 text-left font-semibold tabular-nums sm:min-w-28 sm:flex-none sm:text-right">{formatKES(transaction.amount)}</p>
+                          <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => setEditingTransaction(transaction)}>
                             <Edit3 className="h-4 w-4" />
                           </Button>
-                          <Button type="button" variant="ghost" size="icon" onClick={() => void handleDelete(transaction.id)}>
+                          <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => void handleDelete(transaction.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

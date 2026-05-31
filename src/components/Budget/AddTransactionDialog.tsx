@@ -100,7 +100,12 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
   return (
     <>
       {!hideFloatingTrigger ? (
-        <motion.div className="fixed bottom-6 right-6 z-30" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+        <motion.div
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-30 sm:right-6 lg:bottom-6 lg:right-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15 }}
+        >
           <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={openDialog} disabled={categories.length === 0}>
             <Plus className="h-5 w-5" />
           </Button>
@@ -120,18 +125,20 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
               onClick={() => setDialogOpen(false)}
             />
             <motion.div
-              className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-3xl border bg-card p-6 shadow-2xl"
+              className="fixed inset-x-0 bottom-0 z-50 w-full overflow-y-auto rounded-t-3xl border bg-card p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl max-sm:max-h-[85dvh] sm:inset-x-4 sm:top-1/2 sm:bottom-auto sm:mx-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-md sm:-translate-y-1/2 sm:rounded-3xl"
               initial={{ opacity: 0, y: 20, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}
               transition={{ duration: 0.15 }}
             >
+              <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted sm:hidden" />
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-lg font-semibold">{dialogTitle}</h3>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
+                  className="h-11 w-11"
                   onClick={() => {
                     resetDraft()
                     setDialogOpen(false)
@@ -144,12 +151,12 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
               <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Amount</label>
-                  <Input value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" placeholder="0" />
+                  <Input value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" placeholder="0" className="h-11 text-base" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Category</label>
-                  <Select value={draft.categoryId} onChange={(event) => setDraft((current) => ({ ...current, categoryId: event.target.value }))}>
+                  <Select value={draft.categoryId} onChange={(event) => setDraft((current) => ({ ...current, categoryId: event.target.value }))} className="h-11 text-base">
                     {categories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
@@ -160,15 +167,15 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Description</label>
-                  <Input value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Description" />
+                  <Input value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Description" className="h-11 text-base" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Date</label>
-                  <Input value={draft.date} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} type="date" />
+                  <Input value={draft.date} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} type="date" className="h-11 text-base" />
                 </div>
 
-                <div className={cn("flex items-center justify-end gap-2 pt-2", submitting && "opacity-80")}>
+                <div className={cn("flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end", submitting && "opacity-80")}>
                   <Button
                     type="button"
                     variant="outline"
@@ -176,10 +183,11 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
                       resetDraft()
                       setDialogOpen(false)
                     }}
+                    className="min-h-11 w-full sm:w-auto"
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={submitting || categories.length === 0}>
+                  <Button type="submit" disabled={submitting || categories.length === 0} className="min-h-11 w-full sm:w-auto">
                     {submitLabel}
                   </Button>
                 </div>

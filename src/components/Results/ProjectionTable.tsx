@@ -25,9 +25,10 @@ export default function ProjectionTable({ rows }: ProjectionTableProps) {
         <CardHeader>
           <CardTitle>Projection table</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-2">
+          <p className="px-1 text-xs text-muted-foreground sm:hidden">Swipe to view the full projection table.</p>
           <div className="overflow-x-auto rounded-2xl border">
-            <table className="min-w-full border-collapse text-sm">
+            <table className="min-w-[640px] border-collapse text-sm">
               <thead className="bg-muted/60 text-left text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-medium">Month</th>
@@ -45,7 +46,7 @@ export default function ProjectionTable({ rows }: ProjectionTableProps) {
                     <Fragment key={row.dateStr}>
                       <tr className="border-t transition-colors hover:bg-muted/30">
                         <td className="px-4 py-3">
-                          <button type="button" className="flex items-center gap-2 font-medium" onClick={() => toggleRow(row.dateStr)}>
+                          <button type="button" className="flex min-h-11 items-center gap-2 py-1 text-left font-medium" onClick={() => toggleRow(row.dateStr)}>
                             {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                             {row.dateStr}
                           </button>

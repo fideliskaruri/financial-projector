@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone, MonthlyRow } from "@/engine/types"
+import { useEffect, useState } from "react"
 import {
   Area,
   AreaChart,
@@ -27,6 +28,7 @@ interface BalanceChartProps {
 }
 
 export default function BalanceChart({ rows, milestones = [], comparisonRows, comparisonSeries }: BalanceChartProps) {
+  const [isMobile, setIsMobile] = useState(false)
   const series = comparisonSeries ?? (comparisonRows ? [{ name: "Lean scenario", rows: comparisonRows }] : [])
   const normalizedSeries = series.map((entry, index) => ({ ...entry, key: `comparison-${index}` }))
   const seriesMaps = normalizedSeries.map((entry) => [entry.key, new Map(entry.rows.map((row) => [row.dateStr, row.endBalance]))] as const)
@@ -38,12 +40,22 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
     return nextRow
   })
 
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)")
+    const update = () => setIsMobile(media.matches)
+
+    update()
+    media.addEventListener("change", update)
+
+    return () => media.removeEventListener("change", update)
+  }, [])
+
   return (
     <Card>
-      <CardContent className="p-0">
-        <div className="h-[300px] w-full lg:h-[360px]">
+      <CardContent className="overflow-hidden p-0">
+        <div className="h-[280px] w-full sm:h-[300px] lg:h-[360px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ left: 0, right: 0, top: 8, bottom: 0 }}>
+            <AreaChart data={data} margin={{ left: 0, right: isMobile ? 12 : 0, top: 8, bottom: 0 }}>
               <defs>
                 <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.2} />
@@ -55,23 +67,28 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
                 tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
-                minTickGap={40}
+                minTickGap={isMobile ? 24 : 40}
                 dy={8}
               />
               <YAxis
+                hide={isMobile}
                 tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
                 tickLine={false}
                 axisLine={false}
-                width={70}
+                width={isMobile ? 50 : 70}
                 tickFormatter={(value) => currencyCompact.format(Number(value))}
               />
               <Tooltip
+                allowEscapeViewBox={{ x: true, y: true }}
+                wrapperStyle={{ outline: "none", maxWidth: "calc(100vw - 2rem)", pointerEvents: "none" }}
                 contentStyle={{
                   backgroundColor: "var(--color-card)",
                   border: "1px solid var(--color-border)",
                   borderRadius: 8,
-                  fontSize: 12,
+                  fontSize: isMobile ? 11 : 12,
                   boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  maxWidth: "calc(100vw - 2rem)",
+                  padding: isMobile ? "0.5rem" : undefined,
                 }}
                 formatter={(value) => [currency.format(Number(value ?? 0)), "Balance"]}
                 labelStyle={{ color: "var(--color-muted-foreground)", fontSize: 11 }}

@@ -75,23 +75,23 @@ export default function BudgetOverview() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center rounded-xl border bg-card p-1">
-          <Button type="button" variant="ghost" size="icon" onClick={() => setMonth((current) => shiftMonth(current, -1))}>
+          <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => setMonth((current) => shiftMonth(current, -1))}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div className="min-w-36 px-4 text-center text-sm font-medium">{formatMonthLabel(month)}</div>
-          <Button type="button" variant="ghost" size="icon" onClick={() => setMonth((current) => shiftMonth(current, 1))}>
+          <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => setMonth((current) => shiftMonth(current, 1))}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
-        <Button type="button" onClick={() => setCategoryDialogOpen(true)}>
+        <Button type="button" className="min-h-11" onClick={() => setCategoryDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Category
         </Button>
       </div>
 
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           <span className="text-muted-foreground">
             Budget <span className="font-medium tabular-nums text-foreground">{formatKES(summary?.totalBudgeted ?? 0)}</span>
           </span>
@@ -105,7 +105,7 @@ export default function BudgetOverview() {
       </div>
 
       <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),320px]">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(summary?.categories ?? []).map((categorySummary) => (
             <CategoryCard
               key={categorySummary.categoryId}
@@ -120,7 +120,7 @@ export default function BudgetOverview() {
           <CardHeader>
             <CardTitle>Spending mix</CardTitle>
           </CardHeader>
-          <CardContent className="h-[280px]">
+          <CardContent className="h-[200px] sm:h-[280px]">
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>

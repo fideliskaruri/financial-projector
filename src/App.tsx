@@ -140,10 +140,10 @@ export default function App() {
   const setActiveTab = (tab: AppTab) => setStoredActiveTab(tab)
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
       <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
 
-      <div className="min-h-screen">
+      <div className="min-h-[100dvh] overflow-x-hidden">
         <Header
           activeTab={activeTab}
           darkMode={darkMode}
@@ -160,14 +160,14 @@ export default function App() {
         />
         <BottomNav activeTab={activeTab} onSelectTab={setActiveTab} />
 
-        <main className="px-4 py-4 pb-20 sm:px-6 lg:px-8 lg:pl-60 lg:pb-0">
+        <main className="overscroll-y-contain px-4 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pl-60 lg:pb-0">
           <>
             {activeTab === "dashboard" ? (
               <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-6">
                 <div>
                   <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projected Balance · {finalRow?.dateStr ?? ""}</p>
                   <p className="mt-1 text-4xl font-bold tabular-nums tracking-tight lg:text-5xl">{currency.format(finalRow?.endBalance ?? 0)}</p>
-                  <div className="mt-3 flex items-center gap-4 text-sm">
+                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                     <span className="text-muted-foreground">
                       Interest <span className="font-medium tabular-nums text-foreground">{currency.format(projection.rows.reduce((sum, row) => sum + row.interest, 0))}</span>
                     </span>
@@ -221,7 +221,7 @@ export default function App() {
               <motion.div key="projections" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-4">
                 <Suspense fallback={suspenseFallback}>
                   <ScenarioManager inputs={inputs} onLoadScenario={(loadedInputs) => setInputs(loadedInputs)} onOpenSettings={() => setActiveTab("settings")} />
-                  <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
+                  <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-[1.1fr,0.9fr]">
                     <ProjectionTable rows={projection.rows} />
                     <InflowBreakdownChart rows={projection.rows} />
                   </div>
@@ -254,7 +254,7 @@ export default function App() {
                     <OnHireVestsForm vests={inputs.onHireVests} onChange={(onHireVests) => setInputs((current) => ({ ...current, onHireVests }))} />
                     <StockBonusForm stockGrants={inputs.stockGrants} onChange={(stockGrants) => setInputs((current) => ({ ...current, stockGrants }))} />
                   </div>
-                  <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
+                  <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-[1.1fr,0.9fr]">
                     <OneTimeEventsForm events={inputs.oneTimeEvents} onChange={(oneTimeEvents) => setInputs((current) => ({ ...current, oneTimeEvents }))} />
                     <SpendingScheduleForm overrides={inputs.spendingOverrides} onChange={(spendingOverrides) => setInputs((current) => ({ ...current, spendingOverrides }))} />
                   </div>
