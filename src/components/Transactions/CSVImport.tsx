@@ -2,14 +2,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { SpendingCategory } from "@/db/database"
 import { importTransactions } from "@/hooks/useBudget"
 import { autoCategorizeTransaction, formatKES, getTodayIsoDate, normalizeImportedDate, parseAmount } from "@/lib/finance"
+import { maskAmount } from "@/lib/mask"
+import { X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import Papa from "papaparse"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
-import { X } from "lucide-react"
 
 interface CSVImportProps {
   categories: SpendingCategory[]
@@ -24,6 +26,7 @@ function guessColumn(headers: string[], options: string[]) {
 }
 
 export default function CSVImport({ categories, open, onOpenChange }: CSVImportProps) {
+  const { balanceHidden } = usePrivacy()
   const [rows, setRows] = useState<CsvRow[]>([])
   const [fileName, setFileName] = useState("")
   const [mapping, setMapping] = useState({ date: "", description: "", amount: "" })
@@ -178,7 +181,7 @@ export default function CSVImport({ categories, open, onOpenChange }: CSVImportP
                             <div key={`${row.description}-${index}`} className="grid grid-cols-[120px,1fr,120px,140px] gap-3 px-4 py-3 text-sm">
                               <span>{row.date}</span>
                               <span className="truncate">{row.description}</span>
-                              <span className="tabular-nums">{formatKES(row.amount)}</span>
+                              <span className="tabular-nums">{maskAmount(formatKES(row.amount), balanceHidden)}</span>
                               <span>{categories.find((category) => category.id === row.categoryId)?.name ?? "Unassigned"}</span>
                             </div>
                           ))}

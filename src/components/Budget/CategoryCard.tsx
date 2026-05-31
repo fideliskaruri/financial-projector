@@ -1,6 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { CategoryMonthSummary } from "@/lib/finance"
 import { categoryIcons, formatKES } from "@/lib/finance"
+import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
 import { motion } from "motion/react"
 
@@ -11,6 +13,7 @@ interface CategoryCardProps {
 }
 
 export default function CategoryCard({ summary, selected = false, onClick }: CategoryCardProps) {
+  const { balanceHidden } = usePrivacy()
   const category = summary.category
   const Icon = categoryIcons[category?.icon ?? "Wallet"] ?? categoryIcons.Wallet
   const budgetState = summary.spent > summary.budgeted ? "over" : summary.percentage >= 80 ? "near" : "under"
@@ -42,8 +45,8 @@ export default function CategoryCard({ summary, selected = false, onClick }: Cat
               />
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium tabular-nums text-foreground">{formatKES(summary.spent)}</span>
-              <span className="tabular-nums text-muted-foreground">/ {formatKES(summary.budgeted)}</span>
+              <span className="font-medium tabular-nums text-foreground">{maskAmount(formatKES(summary.spent), balanceHidden)}</span>
+              <span className="tabular-nums text-muted-foreground">/ {maskAmount(formatKES(summary.budgeted), balanceHidden)}</span>
             </div>
           </div>
         </CardContent>

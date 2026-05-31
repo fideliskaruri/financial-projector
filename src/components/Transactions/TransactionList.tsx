@@ -3,16 +3,18 @@ import CSVImport from "@/components/Transactions/CSVImport"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { Transaction } from "@/db/database"
 import { deleteTransaction, useCategories, useTransactions } from "@/hooks/useBudget"
 import { categoryIcons, formatKES, longDateFormatter } from "@/lib/finance"
+import { maskAmount } from "@/lib/mask"
 import { Edit3, Search, Trash2, Upload } from "lucide-react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
 function TransactionListSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse">
+    <div className="animate-pulse space-y-4">
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr),11rem,10rem,10rem,auto] xl:items-center">
         <div className="h-11 rounded-md bg-secondary" />
         <div className="h-11 rounded-md bg-secondary" />
@@ -30,6 +32,7 @@ function TransactionListSkeleton() {
 }
 
 export default function TransactionList() {
+  const { balanceHidden } = usePrivacy()
   const [search, setSearch] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [fromDate, setFromDate] = useState("")
@@ -137,7 +140,7 @@ export default function TransactionList() {
                         </div>
 
                         <div className="flex items-center gap-2 sm:gap-3 sm:justify-end">
-                          <p className="min-w-0 flex-1 text-left font-semibold tabular-nums sm:min-w-28 sm:flex-none sm:text-right">{formatKES(transaction.amount)}</p>
+                          <p className="min-w-0 flex-1 text-left font-semibold tabular-nums sm:min-w-28 sm:flex-none sm:text-right">{maskAmount(formatKES(transaction.amount), balanceHidden)}</p>
                           <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => setEditingTransaction(transaction)}>
                             <Edit3 className="h-4 w-4" />
                           </Button>

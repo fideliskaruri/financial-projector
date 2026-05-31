@@ -13,23 +13,24 @@ import { toast } from "sonner"
 interface AddTransactionDialogProps {
   categories: SpendingCategory[]
   initialTransaction?: Transaction
+  initialCategoryId?: string
   open?: boolean
   onOpenChange?: (open: boolean) => void
   hideFloatingTrigger?: boolean
 }
 
-function createDraft(categories: SpendingCategory[], initialTransaction?: Transaction) {
+function createDraft(categories: SpendingCategory[], initialTransaction?: Transaction, initialCategoryId?: string) {
   return {
     amount: initialTransaction?.amount ? String(initialTransaction.amount) : "",
-    categoryId: initialTransaction?.categoryId ?? categories[0]?.id ?? "",
+    categoryId: initialTransaction?.categoryId ?? initialCategoryId ?? categories[0]?.id ?? "",
     description: initialTransaction?.description ?? "",
     date: initialTransaction?.date ?? getTodayIsoDate(),
   }
 }
 
-export default function AddTransactionDialog({ categories, initialTransaction, open, onOpenChange, hideFloatingTrigger = false }: AddTransactionDialogProps) {
+export default function AddTransactionDialog({ categories, initialTransaction, initialCategoryId, open, onOpenChange, hideFloatingTrigger = false }: AddTransactionDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false)
-  const [draft, setDraft] = useState(() => createDraft(categories, initialTransaction))
+  const [draft, setDraft] = useState(() => createDraft(categories, initialTransaction, initialCategoryId))
   const [submitting, setSubmitting] = useState(false)
 
   const controlled = open !== undefined
@@ -46,11 +47,11 @@ export default function AddTransactionDialog({ categories, initialTransaction, o
   }
 
   const openDialog = () => {
-    setDraft(createDraft(categories, initialTransaction))
+    setDraft(createDraft(categories, initialTransaction, initialCategoryId))
     setDialogOpen(true)
   }
 
-  const resetDraft = () => setDraft(createDraft(categories, initialTransaction))
+  const resetDraft = () => setDraft(createDraft(categories, initialTransaction, initialCategoryId))
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()

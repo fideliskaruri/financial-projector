@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import { LEAN_SPENDING } from "@/data/defaults"
 import { runProjection } from "@/engine/projectionEngine"
 import type { AllInputs } from "@/engine/types"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
+import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
 import { GitCompareArrows, Save, Sparkles, Trash2, Upload } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -35,6 +37,7 @@ function cloneInputs(value: AllInputs): AllInputs {
 }
 
 export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings }: ScenarioManagerProps) {
+  const { balanceHidden } = usePrivacy()
   const [scenarioName, setScenarioName] = useState("")
   const [leanComparisonEnabled, setLeanComparisonEnabled] = useState(false)
   const [selectedScenarioIds, setSelectedScenarioIds] = useState<string[]>([])
@@ -130,7 +133,7 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
             <div className="rounded-2xl border p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant="secondary">Current</Badge>
-                <Badge variant="outline">End balance {currency.format(currentEndBalance)}</Badge>
+                <Badge variant="outline">End balance {maskAmount(currency.format(currentEndBalance), balanceHidden)}</Badge>
               </div>
               <p className="mt-3 text-sm text-muted-foreground">Current baseline. Compare saved scenarios or enable lean overlay below.</p>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -153,14 +156,14 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm text-muted-foreground">Lean mode end balance</p>
-                  <p className="mt-2 text-2xl font-semibold tabular-nums">{currency.format(leanEndBalance)}</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums">{maskAmount(currency.format(leanEndBalance), balanceHidden)}</p>
                 </div>
                 <Badge variant={leanDelta >= 0 ? "success" : "warning"} className="gap-1">
                   <GitCompareArrows className="h-3.5 w-3.5" />
                   {leanDelta >= 0 ? "Ahead" : "Behind"}
                 </Badge>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">Spending set to {currency.format(LEAN_SPENDING)}/mo.</p>
+              <p className="mt-3 text-sm text-muted-foreground">Spending set to {maskAmount(currency.format(LEAN_SPENDING), balanceHidden)}/mo.</p>
             </div>
           </CardContent>
         </Card>
@@ -197,7 +200,7 @@ export default function ScenarioManager({ inputs, onLoadScenario, onOpenSettings
                         <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                           <span>Saved {new Date(scenario.savedAt).toLocaleString()}</span>
                           <Separator orientation="vertical" className="hidden h-4 lg:block" />
-                          <span>End balance {currency.format(scenario.endBalance)}</span>
+                          <span>End balance {maskAmount(currency.format(scenario.endBalance), balanceHidden)}</span>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">

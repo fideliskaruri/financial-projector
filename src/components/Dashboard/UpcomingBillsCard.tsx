@@ -1,7 +1,9 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { RecurringBill, SpendingCategory } from "@/db/database"
 import { daysUntil, formatKES, getNextDueDate } from "@/lib/finance"
+import { maskAmount } from "@/lib/mask"
 
 interface UpcomingBillsCardProps {
   bills: RecurringBill[]
@@ -9,6 +11,7 @@ interface UpcomingBillsCardProps {
 }
 
 export default function UpcomingBillsCard({ bills, categories }: UpcomingBillsCardProps) {
+  const { balanceHidden } = usePrivacy()
   const upcomingBills = bills
     .slice()
     .sort((left, right) => getNextDueDate(left).getTime() - getNextDueDate(right).getTime())
@@ -35,7 +38,7 @@ export default function UpcomingBillsCard({ bills, categories }: UpcomingBillsCa
                     <Badge variant="outline">{dueIn <= 0 ? "Due now" : `${dueIn}d`}</Badge>
                   </div>
                 </div>
-                <p className="font-semibold tabular-nums">{formatKES(bill.amount)}</p>
+                <p className="font-semibold tabular-nums">{maskAmount(formatKES(bill.amount), balanceHidden)}</p>
               </div>
             )
           })

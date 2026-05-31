@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import type { AppTab } from "@/types/navigation"
-import { Download, Moon, RotateCcw, Share2, Sun } from "lucide-react"
+import type { User } from "firebase/auth"
+import { Download, Eye, EyeOff, LogOut, Moon, RotateCcw, Share2, Sun } from "lucide-react"
 
 const pageTitles: Record<AppTab, string> = {
   dashboard: "Dashboard",
@@ -13,20 +14,33 @@ const pageTitles: Record<AppTab, string> = {
 
 interface HeaderProps {
   activeTab: AppTab
+  balanceHidden: boolean
   darkMode: boolean
   onExport: () => void
+  onLogout: () => Promise<void>
   onReset: () => void
   onShare: () => void
+  onToggleBalanceHidden: () => void
   onToggleDarkMode: () => void
+  user: User
 }
 
-export default function Header({ activeTab, darkMode, onExport, onReset, onShare, onToggleDarkMode }: HeaderProps) {
+function getUserLabel(user: User) {
+  return user.displayName ?? user.email ?? "Signed in user"
+}
+
+function getUserInitial(user: User) {
+  return getUserLabel(user).trim().charAt(0).toUpperCase() || "F"
+}
+
+export default function Header({ activeTab, balanceHidden, darkMode, onExport, onLogout, onReset, onShare, onToggleBalanceHidden, onToggleDarkMode, user }: HeaderProps) {
   const showProjectionActions = activeTab === "projections" || activeTab === "settings"
+  const userLabel = getUserLabel(user)
 
   return (
     <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm">
-      <div className="flex h-12 items-center justify-between px-4 sm:px-6 lg:pl-60 lg:pr-8">
-        <h1 className="text-sm font-medium text-foreground">{pageTitles[activeTab]}</h1>
+      <div className="flex h-12 items-center justify-between gap-3 px-4 sm:px-6 lg:pl-60 lg:pr-8">
+        <h1 className="truncate text-sm font-medium text-foreground">{pageTitles[activeTab]}</h1>
         <div className="flex items-center gap-1">
           {showProjectionActions ? (
             <>
@@ -41,8 +55,37 @@ export default function Header({ activeTab, darkMode, onExport, onReset, onShare
               </Button>
             </>
           ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onToggleBalanceHidden}
+            aria-label={balanceHidden ? "Show balances" : "Hide balances"}
+            title={balanceHidden ? "Show balances" : "Hide balances"}
+          >
+            {balanceHidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
           <Button type="button" variant="ghost" size="icon" onClick={onToggleDarkMode} aria-label="Toggle theme">
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+          {user.photoURL ? (
+            <img
+              src={user.photoURL}
+              alt={userLabel}
+              title={userLabel}
+              className="ml-1 h-7 w-7 rounded-full border border-border/70 object-cover"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div
+              title={userLabel}
+              className="ml-1 flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-secondary text-[11px] font-semibold text-foreground"
+            >
+              {getUserInitial(user)}
+            </div>
+          )}
+          <Button type="button" variant="ghost" size="icon" onClick={() => void onLogout()} aria-label="Logout" title={userLabel}>
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>

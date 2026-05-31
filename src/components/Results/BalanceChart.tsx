@@ -1,6 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone, MonthlyRow } from "@/engine/types"
+import { maskAmount } from "@/lib/mask"
 import { useEffect, useState } from "react"
 import {
   Area,
@@ -28,6 +30,7 @@ interface BalanceChartProps {
 }
 
 export default function BalanceChart({ rows, milestones = [], comparisonRows, comparisonSeries }: BalanceChartProps) {
+  const { balanceHidden } = usePrivacy()
   const [isMobile, setIsMobile] = useState(false)
   const series = comparisonSeries ?? (comparisonRows ? [{ name: "Lean scenario", rows: comparisonRows }] : [])
   const normalizedSeries = series.map((entry, index) => ({ ...entry, key: `comparison-${index}` }))
@@ -76,7 +79,7 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
                 tickLine={false}
                 axisLine={false}
                 width={isMobile ? 50 : 70}
-                tickFormatter={(value) => currencyCompact.format(Number(value))}
+                tickFormatter={(value) => (balanceHidden ? "•••" : currencyCompact.format(Number(value)))}
               />
               <Tooltip
                 allowEscapeViewBox={{ x: true, y: true }}
@@ -90,7 +93,7 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
                   maxWidth: "calc(100vw - 2rem)",
                   padding: isMobile ? "0.5rem" : undefined,
                 }}
-                formatter={(value) => [currency.format(Number(value ?? 0)), "Balance"]}
+                formatter={(value) => [maskAmount(currency.format(Number(value ?? 0)), balanceHidden), "Balance"]}
                 labelStyle={{ color: "var(--color-muted-foreground)", fontSize: 11 }}
               />
               {milestones

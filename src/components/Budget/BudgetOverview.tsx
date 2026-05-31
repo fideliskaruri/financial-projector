@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import { addCategory, useCategories, useMonthSummary, useTransactions } from "@/hooks/useBudget"
 import { categoryIconOptions, categoryIcons, formatKES, formatMonthLabel, getMonthId, longDateFormatter, shiftMonth, slugifyCategoryName } from "@/lib/finance"
+import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight, CircleDashed, Plus, X } from "lucide-react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
@@ -52,8 +54,10 @@ function BudgetOverviewSkeleton() {
 }
 
 export default function BudgetOverview() {
+  const { balanceHidden } = usePrivacy()
   const [month, setMonth] = useState(getMonthId(new Date()))
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>()
+  const [addTransactionCategoryId, setAddTransactionCategoryId] = useState<string>()
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryForm, setCategoryForm] = useState(initialCategoryForm)
 
@@ -121,13 +125,13 @@ export default function BudgetOverview() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           <span className="text-muted-foreground">
-            Budget <span className="font-medium tabular-nums text-foreground">{formatKES(summary.totalBudgeted)}</span>
+            Budget <span className="font-medium tabular-nums text-foreground">{maskAmount(formatKES(summary.totalBudgeted), balanceHidden)}</span>
           </span>
           <span className="text-muted-foreground">
-            Spent <span className="font-medium tabular-nums text-foreground">{formatKES(summary.totalSpent)}</span>
+            Spent <span className="font-medium tabular-nums text-foreground">{maskAmount(formatKES(summary.totalSpent), balanceHidden)}</span>
           </span>
           <span className={cn("font-medium tabular-nums", summary.remaining >= 0 ? "text-success" : "text-destructive")}>
-            {formatKES(summary.remaining)} left
+            {maskAmount(formatKES(summary.remaining), balanceHidden)} left
           </span>
         </div>
       </div>
@@ -139,7 +143,10 @@ export default function BudgetOverview() {
               key={categorySummary.categoryId}
               summary={categorySummary}
               selected={activeCategoryId === categorySummary.categoryId}
-              onClick={() => setSelectedCategoryId(categorySummary.categoryId)}
+              onClick={() => {
+                setSelectedCategoryId(categorySummary.categoryId)
+                setAddTransactionCategoryId(categorySummary.categoryId)
+              }}
             />
           ))}
         </div>
@@ -157,7 +164,7 @@ export default function BudgetOverview() {
                       <Cell key={entry.categoryId} fill={entry.category?.color ?? "#6366f1"} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => formatKES(Number(value ?? 0))} />
+                  <Tooltip formatter={(value) => maskAmount(formatKES(Number(value ?? 0)), balanceHidden)} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -191,7 +198,7 @@ export default function BudgetOverview() {
                         <p className="text-sm text-muted-foreground">{longDateFormatter.format(new Date(transaction.date))}</p>
                       </div>
                     </div>
-                    <p className="font-semibold tabular-nums">{formatKES(transaction.amount)}</p>
+                    <p className="font-semibold tabular-nums">{maskAmount(formatKES(transaction.amount), balanceHidden)}</p>
                   </div>
                 )
               })}
@@ -202,7 +209,13 @@ export default function BudgetOverview() {
         </CardContent>
       </Card>
 
-      <AddTransactionDialog categories={categories} />
+      <AddTransactionDialog
+        key={addTransactionCategoryId ?? "budget-add"}
+        categories={categories}
+        initialCategoryId={addTransactionCategoryId}
+        open={Boolean(addTransactionCategoryId)}
+        onOpenChange={(open) => { if (!open) setAddTransactionCategoryId(undefined) }}
+      />
 
       {categoryDialogOpen ? (
         <>

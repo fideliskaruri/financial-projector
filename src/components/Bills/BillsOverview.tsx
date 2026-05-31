@@ -2,8 +2,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import { addBill, deleteBill, toggleBillPaid, useBills, useCategories, useTransactions } from "@/hooks/useBudget"
 import { daysUntil, formatKES, getMonthId, getNextDueDate, isBillDueInMonth } from "@/lib/finance"
+import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
 import { CalendarClock, Plus, Trash2, X } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -35,6 +37,7 @@ function BillsOverviewSkeleton() {
 }
 
 export default function BillsOverview() {
+  const { balanceHidden } = usePrivacy()
   const [billDialogOpen, setBillDialogOpen] = useState(false)
   const [billForm, setBillForm] = useState(initialBillForm)
 
@@ -105,7 +108,7 @@ export default function BillsOverview() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {dueThisMonth.length} bills · {formatKES(dueTotal)} this month
+          {dueThisMonth.length} bills · {maskAmount(formatKES(dueTotal), balanceHidden)} this month
         </p>
         <Button type="button" variant="ghost" size="sm" className="min-h-11 px-4 text-sm" onClick={() => setBillDialogOpen(true)}>
           <Plus className="h-4 w-4" />
@@ -139,7 +142,7 @@ export default function BillsOverview() {
 
                 <div className="flex flex-wrap items-center gap-3 lg:justify-end">
                   <div className="min-w-28 text-left lg:text-right">
-                    <p className="font-semibold tabular-nums">{formatKES(bill.amount)}</p>
+                    <p className="font-semibold tabular-nums">{maskAmount(formatKES(bill.amount), balanceHidden)}</p>
                   </div>
                   <Button type="button" variant={paid ? "default" : "outline"} className="min-h-11" onClick={() => void handleTogglePaid(bill.id)}>
                     <CalendarClock className="h-4 w-4" />

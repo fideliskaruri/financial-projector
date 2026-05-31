@@ -1,6 +1,8 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { MonthlyRow } from "@/engine/types"
+import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Fragment, useState } from "react"
@@ -12,6 +14,7 @@ interface ProjectionTableProps {
 }
 
 export default function ProjectionTable({ rows }: ProjectionTableProps) {
+  const { balanceHidden } = usePrivacy()
   const [expandedRows, setExpandedRows] = useState<string[]>([])
 
   const toggleRow = (dateStr: string) => {
@@ -50,16 +53,16 @@ export default function ProjectionTable({ rows }: ProjectionTableProps) {
                             {row.dateStr}
                           </button>
                         </td>
-                        <td className="px-4 py-3 tabular-nums">{currency.format(row.startBalance)}</td>
+                        <td className="px-4 py-3 tabular-nums">{maskAmount(currency.format(row.startBalance), balanceHidden)}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <span className="tabular-nums">{currency.format(row.totalInflows)}</span>
+                            <span className="tabular-nums">{maskAmount(currency.format(row.totalInflows), balanceHidden)}</span>
                             <Badge variant="outline">{row.inflows.length}</Badge>
                           </div>
                         </td>
-                        <td className="px-4 py-3 tabular-nums">{currency.format(row.spending)}</td>
-                        <td className="px-4 py-3 tabular-nums text-success">{currency.format(row.interest)}</td>
-                        <td className="px-4 py-3 font-medium tabular-nums">{currency.format(row.endBalance)}</td>
+                        <td className="px-4 py-3 tabular-nums">{maskAmount(currency.format(row.spending), balanceHidden)}</td>
+                        <td className="px-4 py-3 tabular-nums text-success">{maskAmount(currency.format(row.interest), balanceHidden)}</td>
+                        <td className="px-4 py-3 font-medium tabular-nums">{maskAmount(currency.format(row.endBalance), balanceHidden)}</td>
                       </tr>
                       {isExpanded ? (
                         <tr className="border-t bg-muted/20">
@@ -70,7 +73,7 @@ export default function ProjectionTable({ rows }: ProjectionTableProps) {
                                   <div key={`${row.dateStr}-${inflow.name}`} className="rounded-xl border bg-background px-3 py-2">
                                     <p className="text-xs text-muted-foreground">{inflow.name}</p>
                                     <p className={cn("mt-1 font-medium tabular-nums", inflow.amount >= 0 ? "text-foreground" : "text-destructive")}>
-                                      {currency.format(inflow.amount)}
+                                      {maskAmount(currency.format(inflow.amount), balanceHidden)}
                                     </p>
                                   </div>
                                 ))
