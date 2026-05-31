@@ -4,9 +4,23 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/financial-projector/manifest.json" />
-    <meta name="theme-color" content="#4f46e5" />
+    <meta name="theme-color" content="#0B0B0B" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#FAFAFA" media="(prefers-color-scheme: light)" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>financial-projector</title>
+    <title>FinManager</title>
+    <script>
+      try {
+        const stored = JSON.parse(localStorage.getItem("financial-projector-dark-mode") ?? "null")
+        const dark = stored !== null ? stored : true
+        if (dark) {
+          document.documentElement.classList.add("dark")
+          document.documentElement.style.colorScheme = "dark"
+        }
+      } catch {
+        document.documentElement.classList.add("dark")
+        document.documentElement.style.colorScheme = "dark"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

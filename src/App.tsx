@@ -1,21 +1,10 @@
 import BillsOverview from "@/components/Bills/BillsOverview"
 import BudgetOverview from "@/components/Budget/BudgetOverview"
-import FixedParamsForm from "@/components/InputForm/FixedParamsForm"
-import OnHireVestsForm from "@/components/InputForm/OnHireVestsForm"
-import OneTimeEventsForm from "@/components/InputForm/OneTimeEventsForm"
-import ProjectionRangeForm from "@/components/InputForm/ProjectionRangeForm"
-import RecurringInflowsForm from "@/components/InputForm/RecurringInflowsForm"
-import SpendingScheduleForm from "@/components/InputForm/SpendingScheduleForm"
-import StockBonusForm from "@/components/InputForm/StockBonusForm"
 import BottomNav from "@/components/Layout/BottomNav"
 import Header from "@/components/Layout/Header"
 import Sidebar from "@/components/Layout/Sidebar"
-import BalanceChart from "@/components/Results/BalanceChart"
-import InflowBreakdownChart from "@/components/Results/InflowBreakdownChart"
 import MilestoneMarkers from "@/components/Results/MilestoneMarkers"
-import ProjectionTable from "@/components/Results/ProjectionTable"
 import SummaryCards from "@/components/Results/SummaryCards"
-import ScenarioManager from "@/components/Scenarios/ScenarioManager"
 import TransactionList from "@/components/Transactions/TransactionList"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,9 +18,23 @@ import { cn } from "@/lib/utils"
 import type { AppTab } from "@/types/navigation"
 import { decodeInputsFromUrl, encodeInputsToUrl } from "@/utils/urlEncoding"
 import { motion } from "motion/react"
-import { useEffect, useRef } from "react"
+import { lazy, Suspense, useEffect, useRef } from "react"
 import { toast } from "sonner"
 
+const BalanceChart = lazy(() => import("@/components/Results/BalanceChart"))
+const ProjectionTable = lazy(() => import("@/components/Results/ProjectionTable"))
+const InflowBreakdownChart = lazy(() => import("@/components/Results/InflowBreakdownChart"))
+const ScenarioManager = lazy(() => import("@/components/Scenarios/ScenarioManager"))
+const FixedParamsForm = lazy(() => import("@/components/InputForm/FixedParamsForm"))
+const OnHireVestsForm = lazy(() => import("@/components/InputForm/OnHireVestsForm"))
+const OneTimeEventsForm = lazy(() => import("@/components/InputForm/OneTimeEventsForm"))
+const ProjectionRangeForm = lazy(() => import("@/components/InputForm/ProjectionRangeForm"))
+const RecurringInflowsForm = lazy(() => import("@/components/InputForm/RecurringInflowsForm"))
+const SpendingScheduleForm = lazy(() => import("@/components/InputForm/SpendingScheduleForm"))
+const StockBonusForm = lazy(() => import("@/components/InputForm/StockBonusForm"))
+
+const suspenseFallback = <div className="py-12 text-center text-sm text-muted-foreground">Loading...</div>
+const balanceChartFallback = <div className="h-[300px] animate-pulse rounded-lg bg-secondary lg:h-[360px]" />
 const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 const validTabs: AppTab[] = ["dashboard", "budget", "transactions", "bills", "projections", "settings"]
 
@@ -186,7 +189,9 @@ export default function App() {
                     ) : null}
                   </div>
                 </div>
-                <BalanceChart rows={projection.rows} milestones={projection.milestones} />
+                <Suspense fallback={balanceChartFallback}>
+                  <BalanceChart rows={projection.rows} milestones={projection.milestones} />
+                </Suspense>
                 <div className="grid gap-4 xl:grid-cols-2">
                   <MilestoneMarkers milestones={projection.milestones} />
                   <SummaryCards yearlySummaries={projection.yearlySummaries} />
@@ -214,42 +219,46 @@ export default function App() {
 
             {activeTab === "projections" ? (
               <motion.div key="projections" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-4">
-                <ScenarioManager inputs={inputs} onLoadScenario={(loadedInputs) => setInputs(loadedInputs)} onOpenSettings={() => setActiveTab("settings")} />
-                <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
-                  <ProjectionTable rows={projection.rows} />
-                  <InflowBreakdownChart rows={projection.rows} />
-                </div>
+                <Suspense fallback={suspenseFallback}>
+                  <ScenarioManager inputs={inputs} onLoadScenario={(loadedInputs) => setInputs(loadedInputs)} onOpenSettings={() => setActiveTab("settings")} />
+                  <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
+                    <ProjectionTable rows={projection.rows} />
+                    <InflowBreakdownChart rows={projection.rows} />
+                  </div>
+                </Suspense>
               </motion.div>
             ) : null}
 
             {activeTab === "settings" ? (
               <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.1 }} className="space-y-4">
-                <Card className="border bg-card">
-                  <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <CardTitle>Projection spending</CardTitle>
-                    <Badge variant={(monthSummary?.totalSpent ?? 0) > inputs.params.monthlySpending ? "warning" : "success"}>
-                      Actual this month: {formatKES(monthSummary?.totalSpent ?? 0)} / {formatKES(inputs.params.monthlySpending)}
-                    </Badge>
-                  </CardHeader>
-                </Card>
+                <Suspense fallback={suspenseFallback}>
+                  <Card className="border bg-card">
+                    <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <CardTitle>Projection spending</CardTitle>
+                      <Badge variant={(monthSummary?.totalSpent ?? 0) > inputs.params.monthlySpending ? "warning" : "success"}>
+                        Actual this month: {formatKES(monthSummary?.totalSpent ?? 0)} / {formatKES(inputs.params.monthlySpending)}
+                      </Badge>
+                    </CardHeader>
+                  </Card>
 
-                <div className="grid gap-4 xl:grid-cols-2">
-                  <FixedParamsForm params={inputs.params} onChange={(params) => setInputs((current) => ({ ...current, params }))} />
-                  <ProjectionRangeForm
-                    startDate={inputs.params.startDate}
-                    endDate={inputs.params.endDate}
-                    onChange={({ startDate, endDate }) => setInputs((current) => ({ ...current, params: { ...current.params, startDate, endDate } }))}
-                  />
-                </div>
-                <RecurringInflowsForm inflows={inputs.recurringInflows} onChange={(recurringInflows) => setInputs((current) => ({ ...current, recurringInflows }))} />
-                <div className="grid gap-4 xl:grid-cols-2">
-                  <OnHireVestsForm vests={inputs.onHireVests} onChange={(onHireVests) => setInputs((current) => ({ ...current, onHireVests }))} />
-                  <StockBonusForm stockGrants={inputs.stockGrants} onChange={(stockGrants) => setInputs((current) => ({ ...current, stockGrants }))} />
-                </div>
-                <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
-                  <OneTimeEventsForm events={inputs.oneTimeEvents} onChange={(oneTimeEvents) => setInputs((current) => ({ ...current, oneTimeEvents }))} />
-                  <SpendingScheduleForm overrides={inputs.spendingOverrides} onChange={(spendingOverrides) => setInputs((current) => ({ ...current, spendingOverrides }))} />
-                </div>
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    <FixedParamsForm params={inputs.params} onChange={(params) => setInputs((current) => ({ ...current, params }))} />
+                    <ProjectionRangeForm
+                      startDate={inputs.params.startDate}
+                      endDate={inputs.params.endDate}
+                      onChange={({ startDate, endDate }) => setInputs((current) => ({ ...current, params: { ...current.params, startDate, endDate } }))}
+                    />
+                  </div>
+                  <RecurringInflowsForm inflows={inputs.recurringInflows} onChange={(recurringInflows) => setInputs((current) => ({ ...current, recurringInflows }))} />
+                  <div className="grid gap-4 xl:grid-cols-2">
+                    <OnHireVestsForm vests={inputs.onHireVests} onChange={(onHireVests) => setInputs((current) => ({ ...current, onHireVests }))} />
+                    <StockBonusForm stockGrants={inputs.stockGrants} onChange={(stockGrants) => setInputs((current) => ({ ...current, stockGrants }))} />
+                  </div>
+                  <div className="grid gap-4 xl:grid-cols-[1.1fr,0.9fr]">
+                    <OneTimeEventsForm events={inputs.oneTimeEvents} onChange={(oneTimeEvents) => setInputs((current) => ({ ...current, oneTimeEvents }))} />
+                    <SpendingScheduleForm overrides={inputs.spendingOverrides} onChange={(spendingOverrides) => setInputs((current) => ({ ...current, spendingOverrides }))} />
+                  </div>
+                </Suspense>
               </motion.div>
             ) : null}
           </>

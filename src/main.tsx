@@ -13,6 +13,6 @@ createRoot(document.getElementById("root")!).render(
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/financial-projector/sw.js")
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`)
   })
 }
