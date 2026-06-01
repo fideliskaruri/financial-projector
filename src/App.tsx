@@ -222,7 +222,7 @@ export default function App() {
 
   return (
     <PrivacyContext.Provider value={{ balanceHidden }}>
-      <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
+      <div className="min-h-[100dvh] bg-background text-foreground">
         <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
 
         <div className="min-h-[100dvh]">

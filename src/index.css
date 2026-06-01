@@ -101,29 +101,24 @@
 
 body {
   min-height: 100dvh;
-  overflow-x: hidden;
   font-family: var(--font-sans);
   background-color: var(--background);
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overscroll-behavior-y: contain;
   -webkit-text-size-adjust: 100%;
 }
 
 #root {
-  min-height: 100vh;
   min-height: 100dvh;
-  overflow-x: hidden;
 }
 
 * {
   border-color: var(--border);
 }
 
-/* Smooth scrolling */
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   scroll-behavior: smooth;
 }
 

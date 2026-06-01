@@ -44,7 +44,7 @@ function getUserInitial(user: User) {
 
 export default function SettingsPage({ actualSpendingHint, dataMode, effectiveMonthlySpending, inputs, monthSummaryTotalSpent, onLogout, setDataMode, setInputs, user }: SettingsPageProps) {
   const { balanceHidden } = usePrivacy()
-  const [openSection, setOpenSection] = useState<SettingsSectionId>("income")
+  const [openSection, setOpenSection] = useState<SettingsSectionId | null>("income")
 
   const sections = useMemo(
     () => [
@@ -147,7 +147,7 @@ export default function SettingsPage({ actualSpendingHint, dataMode, effectiveMo
                   <button
                     type="button"
                     className="flex h-14 w-full items-center gap-3 rounded-lg px-4 text-left hover:bg-secondary/50"
-                    onClick={() => setOpenSection(section.id)}
+                    onClick={() => setOpenSection(isOpen ? null : section.id)}
                   >
                     <Icon className="h-4 w-4 text-muted-foreground" />
                     <span className="flex-1 text-sm font-medium">{section.title}</span>

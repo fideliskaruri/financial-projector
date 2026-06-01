@@ -42,7 +42,7 @@ function BudgetOverviewSkeleton() {
       </div>
       <div className="flex gap-3 overflow-hidden">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="h-44 w-[160px] flex-shrink-0 rounded-xl border bg-card" />
+          <div key={index} className="h-44 w-[200px] flex-shrink-0 rounded-xl border bg-card" />
         ))}
       </div>
       <div className="h-60 rounded-xl border bg-card" />
@@ -136,7 +136,7 @@ export default function BudgetOverview() {
       <div className="space-y-3 2xl:grid 2xl:grid-cols-[minmax(0,1fr),320px] 2xl:items-start 2xl:gap-4 2xl:space-y-0">
         <div className="-mx-4 flex gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 xl:grid-cols-3">
           {summary.categories.map((categorySummary) => (
-            <div key={categorySummary.categoryId} className="w-[160px] flex-shrink-0 sm:w-auto">
+            <div key={categorySummary.categoryId} className="w-[200px] flex-shrink-0 sm:w-auto">
               <CategoryCard
                 summary={categorySummary}
                 selected={activeCategoryId === categorySummary.categoryId}
