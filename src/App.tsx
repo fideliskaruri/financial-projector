@@ -9,6 +9,7 @@ import MilestoneMarkers from "@/components/Results/MilestoneMarkers"
 import SummaryCards from "@/components/Results/SummaryCards"
 import TransactionList from "@/components/Transactions/TransactionList"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { PrivacyContext } from "@/contexts/PrivacyContext"
 import { DEFAULT_INPUTS } from "@/data/defaults"
 import type { AllInputs } from "@/engine/types"
@@ -22,7 +23,7 @@ import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
 import type { AppTab } from "@/types/navigation"
 import { decodeInputsFromUrl, encodeInputsToUrl } from "@/utils/urlEncoding"
-import { LoaderCircle } from "lucide-react"
+import { BarChart3, Download, Eye, EyeOff, LoaderCircle, Plus } from "lucide-react"
 import { lazy, Suspense, useEffect, useMemo, useRef } from "react"
 import { toast } from "sonner"
 
@@ -91,8 +92,8 @@ function AuthLoadingScreen() {
 
 const suspenseFallback = <TabContentSkeleton />
 const balanceChartFallback = (
-  <div className="overflow-hidden rounded-2xl border bg-card p-4">
-    <div className="h-[300px] animate-pulse rounded-xl bg-secondary lg:h-[360px]" />
+  <div className="-mx-4 overflow-hidden px-4 sm:mx-0 sm:rounded-xl sm:border sm:bg-card sm:p-4">
+    <div className="h-[180px] animate-pulse rounded-xl bg-secondary sm:h-[300px] lg:h-[360px]" />
   </div>
 )
 
@@ -254,8 +255,33 @@ export default function App() {
           <main className="overscroll-y-contain px-4 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pl-60 lg:pb-0">
             <ErrorBoundary key={activeTab} onRetry={() => window.location.reload()}>
               {activeTab === "dashboard" ? (
-                <div className="space-y-6">
-                  <div>
+                <div className="space-y-3 lg:space-y-6">
+                  <div className="space-y-3 lg:hidden">
+                    <div className="space-y-2 text-center">
+                      <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">{finalRow?.dateStr ?? ""}</p>
+                      <p className="text-4xl font-bold tabular-nums tracking-tight">{maskAmount(currency.format(finalRow?.endBalance ?? 0), balanceHidden)}</p>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2">
+                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setActiveTab("transactions")}>
+                        <Plus className="h-4 w-4" />
+                        <span className="text-[11px]">Add</span>
+                      </Button>
+                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setActiveTab("projections")}>
+                        <BarChart3 className="h-4 w-4" />
+                        <span className="text-[11px]">Charts</span>
+                      </Button>
+                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setBalanceHidden((v) => !v)}>
+                        {balanceHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        <span className="text-[11px]">Privacy</span>
+                      </Button>
+                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={handleExport}>
+                        <Download className="h-4 w-4" />
+                        <span className="text-[11px]">Export</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="hidden lg:block">
                     <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projected Balance · {finalRow?.dateStr ?? ""}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       <p className="text-4xl font-bold tabular-nums tracking-tight lg:text-5xl">{maskAmount(currency.format(finalRow?.endBalance ?? 0), balanceHidden)}</p>
@@ -285,10 +311,21 @@ export default function App() {
                       ) : null}
                     </div>
                   </div>
+
                   <Suspense fallback={balanceChartFallback}>
                     <BalanceChart rows={projection.rows} milestones={projection.milestones} />
                   </Suspense>
-                  <div className="grid gap-4 xl:grid-cols-2">
+
+                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 lg:hidden">
+                    <div className="w-[280px] flex-shrink-0">
+                      <MilestoneMarkers milestones={projection.milestones} />
+                    </div>
+                    <div className="w-[280px] flex-shrink-0">
+                      <SummaryCards yearlySummaries={projection.yearlySummaries} />
+                    </div>
+                  </div>
+
+                  <div className="hidden gap-4 xl:grid xl:grid-cols-2">
                     <MilestoneMarkers milestones={projection.milestones} />
                     <SummaryCards yearlySummaries={projection.yearlySummaries} />
                   </div>

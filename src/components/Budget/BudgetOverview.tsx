@@ -30,7 +30,7 @@ const initialCategoryForm = {
 
 function BudgetOverviewSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse">
+    <div className="animate-pulse space-y-3 sm:space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="h-12 w-52 rounded-xl border bg-card" />
         <div className="h-11 w-36 rounded-md bg-secondary" />
@@ -40,15 +40,12 @@ function BudgetOverviewSkeleton() {
         <div className="h-5 w-24 rounded bg-secondary" />
         <div className="h-5 w-20 rounded bg-secondary" />
       </div>
-      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),320px]">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="h-48 rounded-2xl border bg-card" />
-          ))}
-        </div>
-        <div className="h-[280px] rounded-2xl border bg-card" />
+      <div className="flex gap-3 overflow-hidden">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="h-44 w-[160px] flex-shrink-0 rounded-xl border bg-card" />
+        ))}
       </div>
-      <div className="h-60 rounded-2xl border bg-card" />
+      <div className="h-60 rounded-xl border bg-card" />
     </div>
   )
 }
@@ -57,7 +54,6 @@ export default function BudgetOverview() {
   const { balanceHidden } = usePrivacy()
   const [month, setMonth] = useState(getMonthId(new Date()))
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>()
-  const [addTransactionCategoryId, setAddTransactionCategoryId] = useState<string>()
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryForm, setCategoryForm] = useState(initialCategoryForm)
 
@@ -104,7 +100,7 @@ export default function BudgetOverview() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center rounded-xl border bg-card p-1">
           <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => setMonth((current) => shiftMonth(current, -1))}>
@@ -116,7 +112,7 @@ export default function BudgetOverview() {
           </Button>
         </div>
 
-        <Button type="button" className="min-h-11" onClick={() => setCategoryDialogOpen(true)}>
+        <Button type="button" className="min-h-11 rounded-xl" onClick={() => setCategoryDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Add Category
         </Button>
@@ -136,26 +132,26 @@ export default function BudgetOverview() {
         </div>
       </div>
 
-      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr),320px]">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="space-y-3 2xl:grid 2xl:grid-cols-[minmax(0,1fr),320px] 2xl:items-start 2xl:gap-4 2xl:space-y-0">
+        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 xl:grid-cols-3">
           {summary.categories.map((categorySummary) => (
-            <CategoryCard
-              key={categorySummary.categoryId}
-              summary={categorySummary}
-              selected={activeCategoryId === categorySummary.categoryId}
-              onClick={() => {
-                setSelectedCategoryId(categorySummary.categoryId)
-                setAddTransactionCategoryId(categorySummary.categoryId)
-              }}
-            />
+            <div key={categorySummary.categoryId} className="w-[160px] flex-shrink-0 sm:w-auto">
+              <CategoryCard
+                summary={categorySummary}
+                selected={activeCategoryId === categorySummary.categoryId}
+                onClick={() => {
+                  setSelectedCategoryId(categorySummary.categoryId)
+                }}
+              />
+            </div>
           ))}
         </div>
 
-        <Card className="bg-card">
+        <Card className="hidden rounded-xl bg-card sm:block">
           <CardHeader>
             <CardTitle>Spending mix</CardTitle>
           </CardHeader>
-          <CardContent className="h-[200px] sm:h-[280px]">
+          <CardContent className="h-[280px]">
             {pieData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -177,50 +173,42 @@ export default function BudgetOverview() {
         </Card>
       </div>
 
-      <Card className="bg-card">
-        <CardHeader className="flex flex-row items-center justify-between gap-3">
+      <Card className="-mx-4 rounded-none border-x-0 bg-transparent sm:mx-0 sm:rounded-xl sm:border sm:bg-card">
+        <CardHeader className="flex flex-row items-center justify-between gap-3 px-4 pb-3 sm:px-5">
           <CardTitle>{selectedCategory?.name ?? "Transactions"}</CardTitle>
           <span className="text-sm text-muted-foreground">{formatMonthLabel(month)}</span>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {selectedTransactions.length > 0 ? (
-            <div className="space-y-3">
+            <div>
               {selectedTransactions.map((transaction) => {
                 const Icon = categoryIcons[selectedCategory?.icon ?? "Wallet"] ?? categoryIcons.Wallet
                 return (
-                  <div key={transaction.id} className="flex items-center justify-between gap-3 rounded-lg bg-secondary/50 px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ backgroundColor: `${selectedCategory?.color ?? "#64748b"}1A`, color: selectedCategory?.color ?? "#64748b" }}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <p className="text-sm text-muted-foreground">{longDateFormatter.format(new Date(transaction.date))}</p>
-                      </div>
+                  <div key={transaction.id} className="flex h-[60px] items-center gap-3 border-t border-border/50 px-4 first:border-t sm:px-5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${selectedCategory?.color ?? "#64748b"}1A`, color: selectedCategory?.color ?? "#64748b" }}>
+                      <Icon className="h-4 w-4" />
                     </div>
-                    <p className="font-semibold tabular-nums">{maskAmount(formatKES(transaction.amount), balanceHidden)}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold leading-tight">{transaction.description}</p>
+                      <p className="truncate text-[11px] text-muted-foreground">{longDateFormatter.format(new Date(transaction.date))}</p>
+                    </div>
+                    <p className="shrink-0 text-right text-sm font-semibold tabular-nums">{maskAmount(formatKES(transaction.amount), balanceHidden)}</p>
                   </div>
                 )
               })}
             </div>
           ) : (
-            <div className="py-8 text-center text-sm text-muted-foreground">No transactions this month</div>
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground sm:px-5">No transactions this month</div>
           )}
         </CardContent>
       </Card>
 
-      <AddTransactionDialog
-        key={addTransactionCategoryId ?? "budget-add"}
-        categories={categories}
-        initialCategoryId={addTransactionCategoryId}
-        open={Boolean(addTransactionCategoryId)}
-        onOpenChange={(open) => { if (!open) setAddTransactionCategoryId(undefined) }}
-      />
+      <AddTransactionDialog key={activeCategoryId ?? "budget-add"} categories={categories} initialCategoryId={activeCategoryId} />
 
       {categoryDialogOpen ? (
         <>
           <button type="button" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" onClick={() => setCategoryDialogOpen(false)} />
-          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-lg border bg-card p-6 shadow-2xl">
+          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-xl border bg-card p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold">Add category</h3>
               <Button type="button" variant="ghost" size="icon" onClick={() => setCategoryDialogOpen(false)}>

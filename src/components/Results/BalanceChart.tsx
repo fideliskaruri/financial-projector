@@ -3,6 +3,7 @@ import { usePrivacy } from "@/contexts/PrivacyContext"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone, MonthlyRow } from "@/engine/types"
 import { maskAmount } from "@/lib/mask"
+import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import {
   Area,
@@ -53,85 +54,92 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
     return () => media.removeEventListener("change", update)
   }, [])
 
+  const chart = (
+    <div className="h-[180px] w-full sm:h-[300px] lg:h-[360px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data} margin={{ left: 0, right: isMobile ? 12 : 0, top: 8, bottom: 0 }}>
+          <defs>
+            <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <XAxis
+            dataKey="date"
+            interval={isMobile ? 2 : 0}
+            tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            minTickGap={isMobile ? 18 : 40}
+            dy={8}
+          />
+          <YAxis
+            hide={isMobile}
+            tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+            width={70}
+            tickFormatter={(value) => (balanceHidden ? "•••" : currencyCompact.format(Number(value)))}
+          />
+          <Tooltip
+            allowEscapeViewBox={{ x: true, y: true }}
+            wrapperStyle={{ outline: "none", maxWidth: "calc(100vw - 2rem)", pointerEvents: "none" }}
+            contentStyle={{
+              backgroundColor: "var(--color-card)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 8,
+              fontSize: isMobile ? 11 : 12,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              maxWidth: "calc(100vw - 2rem)",
+              padding: isMobile ? "0.5rem" : undefined,
+            }}
+            formatter={(value) => [maskAmount(currency.format(Number(value ?? 0)), balanceHidden), "Balance"]}
+            labelStyle={{ color: "var(--color-muted-foreground)", fontSize: 11 }}
+          />
+          {milestones
+            .filter((milestone) => milestone.reachedDate)
+            .map((milestone) => (
+              <ReferenceLine
+                key={milestone.name}
+                x={monthYearToString(milestone.reachedDate!)}
+                stroke="var(--color-muted-foreground)"
+                strokeDasharray="3 3"
+                strokeOpacity={0.4}
+              />
+            ))}
+          <Area
+            type="natural"
+            dataKey="baseline"
+            stroke="var(--color-chart-1)"
+            strokeWidth={2.5}
+            fill="url(#balanceGradient)"
+            dot={false}
+            activeDot={{ r: 4, fill: "var(--color-chart-1)", strokeWidth: 0 }}
+          />
+          {normalizedSeries.map((entry, index) => (
+            <Area
+              key={entry.key}
+              type="natural"
+              dataKey={entry.key}
+              stroke={`var(--color-chart-${(index % 4) + 2})`}
+              strokeWidth={2}
+              strokeDasharray="4 4"
+              fill="transparent"
+              dot={false}
+            />
+          ))}
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+
+  if (isMobile) {
+    return <div className="-mx-4 overflow-hidden">{chart}</div>
+  }
+
   return (
-    <Card>
-      <CardContent className="overflow-hidden p-0">
-        <div className="h-[280px] w-full sm:h-[300px] lg:h-[360px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ left: 0, right: isMobile ? 12 : 0, top: 8, bottom: 0 }}>
-              <defs>
-                <linearGradient id="balanceGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey="date"
-                tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                minTickGap={isMobile ? 24 : 40}
-                dy={8}
-              />
-              <YAxis
-                hide={isMobile}
-                tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                tickLine={false}
-                axisLine={false}
-                width={isMobile ? 50 : 70}
-                tickFormatter={(value) => (balanceHidden ? "•••" : currencyCompact.format(Number(value)))}
-              />
-              <Tooltip
-                allowEscapeViewBox={{ x: true, y: true }}
-                wrapperStyle={{ outline: "none", maxWidth: "calc(100vw - 2rem)", pointerEvents: "none" }}
-                contentStyle={{
-                  backgroundColor: "var(--color-card)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: 8,
-                  fontSize: isMobile ? 11 : 12,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                  maxWidth: "calc(100vw - 2rem)",
-                  padding: isMobile ? "0.5rem" : undefined,
-                }}
-                formatter={(value) => [maskAmount(currency.format(Number(value ?? 0)), balanceHidden), "Balance"]}
-                labelStyle={{ color: "var(--color-muted-foreground)", fontSize: 11 }}
-              />
-              {milestones
-                .filter((milestone) => milestone.reachedDate)
-                .map((milestone) => (
-                  <ReferenceLine
-                    key={milestone.name}
-                    x={monthYearToString(milestone.reachedDate!)}
-                    stroke="var(--color-muted-foreground)"
-                    strokeDasharray="3 3"
-                    strokeOpacity={0.4}
-                  />
-                ))}
-              <Area
-                type="natural"
-                dataKey="baseline"
-                stroke="var(--color-chart-1)"
-                strokeWidth={2.5}
-                fill="url(#balanceGradient)"
-                dot={false}
-                activeDot={{ r: 4, fill: "var(--color-chart-1)", strokeWidth: 0 }}
-              />
-              {normalizedSeries.map((entry, index) => (
-                <Area
-                  key={entry.key}
-                  type="natural"
-                  dataKey={entry.key}
-                  stroke={`var(--color-chart-${(index % 4) + 2})`}
-                  strokeWidth={2}
-                  strokeDasharray="4 4"
-                  fill="transparent"
-                  dot={false}
-                />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
+    <Card className={cn("rounded-xl")}>
+      <CardContent className="overflow-hidden p-0">{chart}</CardContent>
     </Card>
   )
 }

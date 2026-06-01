@@ -22,14 +22,14 @@ const initialBillForm = {
 
 function BillsOverviewSkeleton() {
   return (
-    <div className="space-y-4 animate-pulse">
+    <div className="animate-pulse space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between">
         <div className="h-5 w-40 rounded bg-secondary" />
         <div className="h-11 w-24 rounded-md bg-secondary" />
       </div>
-      <div className="space-y-3">
+      <div className="space-y-0 border-y border-border/50">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-24 rounded-xl border bg-card" />
+          <div key={index} className="h-[60px] border-b border-border/50 last:border-b-0" />
         ))}
       </div>
     </div>
@@ -105,53 +105,46 @@ export default function BillsOverview() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-3 sm:space-y-4">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {dueThisMonth.length} bills · {maskAmount(formatKES(dueTotal), balanceHidden)} this month
         </p>
-        <Button type="button" variant="ghost" size="sm" className="min-h-11 px-4 text-sm" onClick={() => setBillDialogOpen(true)}>
+        <Button type="button" variant="ghost" size="sm" className="min-h-11 rounded-xl px-4 text-sm" onClick={() => setBillDialogOpen(true)}>
           <Plus className="h-4 w-4" />
           Add
         </Button>
       </div>
 
       {bills.length > 0 ? (
-        <div>
+        <div className="-mx-4 border-y border-border/50 sm:mx-0 sm:overflow-hidden sm:rounded-xl sm:border">
           {bills.map((bill) => {
             const category = categories.find((item) => item.id === bill.categoryId)
             const paid = paidBillIds.has(bill.id)
             const nextDue = getNextDueDate(bill)
             const proximity = daysUntil(nextDue)
+            const statusLabel = paid ? "Paid" : proximity < 0 ? "Overdue" : proximity <= 5 ? `${proximity}d left` : "Upcoming"
+            const badgeVariant = paid ? "success" : proximity < 0 ? "destructive" : proximity <= 5 ? "warning" : "secondary"
 
             return (
-              <div key={bill.id} className={cn("flex flex-col gap-2 border-b border-border/50 py-3 last:border-0 lg:flex-row lg:items-center lg:justify-between")}>
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={cn("h-2 w-2 shrink-0 rounded-full", paid ? "bg-success" : proximity < 0 ? "bg-destructive" : proximity <= 5 ? "bg-warning" : "bg-muted-foreground/30")} />
-                    <h3 className="font-medium">{bill.name}</h3>
-                    {bill.isAutoPay ? <Badge variant="secondary">Auto-pay</Badge> : null}
-                    <Badge variant="outline">{bill.frequency}</Badge>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                    <span>{category?.name ?? "Category"}</span>
-                    <span>Day {bill.dueDay}</span>
-                    <span>{proximity < 0 && !paid ? "Overdue" : proximity <= 5 && !paid ? `${proximity}d left` : nextDue.toLocaleDateString("en-KE", { day: "numeric", month: "short" })}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                  <div className="min-w-28 text-left lg:text-right">
-                    <p className="font-semibold tabular-nums">{maskAmount(formatKES(bill.amount), balanceHidden)}</p>
-                  </div>
-                  <Button type="button" variant={paid ? "default" : "outline"} className="min-h-11" onClick={() => void handleTogglePaid(bill.id)}>
+              <div key={bill.id} className="flex h-[60px] items-center gap-1 border-b border-border/50 px-4 last:border-b-0 sm:px-3">
+                <button type="button" onClick={() => void handleTogglePaid(bill.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
                     <CalendarClock className="h-4 w-4" />
-                    {paid ? "Paid" : "Mark Paid"}
-                  </Button>
-                  <Button type="button" variant="ghost" size="icon" className="h-11 w-11" onClick={() => void handleDeleteBill(bill.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold leading-tight">{bill.name}</p>
+                    <p className="truncate text-[11px] text-muted-foreground">
+                      {category?.name ?? "Category"} · Day {bill.dueDay}
+                      {bill.isAutoPay ? " · Auto-pay" : ""}
+                    </p>
+                  </div>
+                  <p className="ml-auto shrink-0 text-sm font-semibold tabular-nums">{maskAmount(formatKES(bill.amount), balanceHidden)}</p>
+                </button>
+                <Badge variant={badgeVariant} className={cn("shrink-0")}>{statusLabel}</Badge>
+                <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => void handleDeleteBill(bill.id)} aria-label="Delete bill">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             )
           })}
@@ -163,7 +156,7 @@ export default function BillsOverview() {
       {billDialogOpen ? (
         <>
           <button type="button" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" onClick={() => setBillDialogOpen(false)} />
-          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-lg border bg-card p-6 shadow-2xl">
+          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-xl border bg-card p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-semibold">Add bill</h3>
               <Button type="button" variant="ghost" size="icon" onClick={() => setBillDialogOpen(false)}>
