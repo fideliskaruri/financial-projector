@@ -192,7 +192,7 @@ export default function BudgetOverview() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold leading-tight">{transaction.description}</p>
-                      <p className="truncate text-[11px] text-muted-foreground">{longDateFormatter.format(new Date(transaction.date))}</p>
+                      <p className="truncate text-xs text-muted-foreground">{longDateFormatter.format(new Date(transaction.date))}</p>
                     </div>
                     <p className="shrink-0 text-right text-sm font-semibold tabular-nums">{maskAmount(formatKES(transaction.amount), balanceHidden)}</p>
                   </div>

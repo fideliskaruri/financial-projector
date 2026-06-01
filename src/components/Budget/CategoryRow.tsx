@@ -23,7 +23,7 @@ export default function CategoryRow({ summary, selected = false, onClick }: Cate
       type="button"
       onClick={onClick}
       className={cn(
-        "flex min-h-14 w-full items-stretch gap-3 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-secondary/50",
+        "flex min-h-14 w-full items-stretch gap-3 rounded-xl border bg-card p-3 text-left transition-colors hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         selected && "border-primary/60 bg-primary/5",
       )}
     >

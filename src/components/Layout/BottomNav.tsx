@@ -58,7 +58,7 @@ export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
                   onSelectTab(item.id)
                 }}
                 className={cn(
-                  "flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors",
+                  "flex h-11 w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isActive ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground",
                 )}
               >
@@ -81,6 +81,7 @@ export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
                 key={item.id}
                 type="button"
                 aria-label={item.label}
+                aria-current={isActive && item.id !== "more" ? "page" : undefined}
                 title={item.label}
                 onClick={() => {
                   if (item.id === "more") {
@@ -92,12 +93,12 @@ export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
                   onSelectTab(item.id)
                 }}
                 className={cn(
-                  "flex h-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground transition-colors",
+                  "flex h-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   isActive && "font-semibold text-foreground",
                 )}
               >
                 <Icon className={cn("h-[22px] w-[22px]", isActive && "stroke-[2.5]")} />
-                <span className="text-[10px] leading-none">{item.label}</span>
+                <span className="text-[11px] leading-none">{item.label}</span>
               </button>
             )
           })}

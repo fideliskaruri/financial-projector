@@ -36,17 +36,20 @@ function getUserInitial(user: User) {
 
 export default function Header({ activeTab, balanceHidden, darkMode, onAdd, onExport, onLogout, onReset, onShare, onToggleBalanceHidden, onToggleDarkMode, user }: HeaderProps) {
   const showProjectionActions = activeTab === "projections" || activeTab === "settings"
+  const showAddButton = activeTab === "dashboard" || activeTab === "budget" || activeTab === "transactions"
   const userLabel = user ? getUserLabel(user) : "Guest"
 
   return (
-    <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-sm">
       <div className="flex h-12 items-center justify-between gap-3 px-4 sm:px-6 lg:pl-60 lg:pr-8">
         <h1 className="truncate text-sm font-medium text-foreground">{pageTitles[activeTab]}</h1>
         <div className="flex items-center gap-1">
-          <Button type="button" size="sm" onClick={onAdd} className="mr-1 gap-1.5 rounded-full px-3" aria-label="Add transaction" title="Add transaction">
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Add</span>
-          </Button>
+          {showAddButton ? (
+            <Button type="button" size="sm" onClick={onAdd} className="mr-1 gap-1.5 rounded-full px-3" aria-label="Add transaction" title="Add transaction">
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add</span>
+            </Button>
+          ) : null}
           {showProjectionActions ? (
             <>
               <Button type="button" variant="ghost" size="icon" onClick={onReset} aria-label="Reset">

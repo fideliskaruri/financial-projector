@@ -6,7 +6,7 @@ import type { SpendingCategory, Transaction } from "@/db/database"
 import { addTransaction, updateTransaction } from "@/hooks/useBudget"
 import { getTodayIsoDate } from "@/lib/finance"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { toast } from "sonner"
 
 interface AddTransactionDialogProps {
@@ -29,6 +29,7 @@ function createDraft(categories: SpendingCategory[], initialTransaction?: Transa
 export default function AddTransactionDialog({ categories, initialTransaction, initialCategoryId, open, onOpenChange }: AddTransactionDialogProps) {
   const [draft, setDraft] = useState(() => createDraft(categories, initialTransaction, initialCategoryId))
   const [submitting, setSubmitting] = useState(false)
+  const fieldId = useId()
 
   const dialogTitle = initialTransaction ? "Edit transaction" : "Add transaction"
   const submitLabel = initialTransaction ? "Save" : "Add"
@@ -89,13 +90,13 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
     <BottomSheet open={open} onClose={closeDialog} title={dialogTitle}>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Amount</label>
-          <Input value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" placeholder="0" className="h-11 text-base" />
+          <label htmlFor={`${fieldId}-amount`} className="text-sm font-medium">Amount</label>
+          <Input id={`${fieldId}-amount`} value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" placeholder="0" className="h-11 text-base" />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Category</label>
-          <Select value={draft.categoryId} onChange={(event) => setDraft((current) => ({ ...current, categoryId: event.target.value }))} className="h-11 text-base">
+          <label htmlFor={`${fieldId}-category`} className="text-sm font-medium">Category</label>
+          <Select id={`${fieldId}-category`} value={draft.categoryId} onChange={(event) => setDraft((current) => ({ ...current, categoryId: event.target.value }))} className="h-11 text-base">
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -105,13 +106,13 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Description</label>
-          <Input value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Description" className="h-11 text-base" />
+          <label htmlFor={`${fieldId}-description`} className="text-sm font-medium">Description</label>
+          <Input id={`${fieldId}-description`} value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Description" className="h-11 text-base" />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">Date</label>
-          <Input value={draft.date} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} type="date" className="h-11 text-base" />
+          <label htmlFor={`${fieldId}-date`} className="text-sm font-medium">Date</label>
+          <Input id={`${fieldId}-date`} value={draft.date} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} type="date" className="h-11 text-base" />
         </div>
 
         <div className={cn("flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end", submitting && "opacity-80")}>

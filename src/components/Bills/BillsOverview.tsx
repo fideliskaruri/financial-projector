@@ -1,3 +1,4 @@
+import BottomSheet from "@/components/ui/BottomSheet"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,8 +8,8 @@ import { addBill, deleteBill, toggleBillPaid, useBills, useCategories, useTransa
 import { daysUntil, formatKES, getMonthId, getNextDueDate, isBillDueInMonth } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
-import { CalendarClock, Plus, Trash2, X } from "lucide-react"
-import { useMemo, useState } from "react"
+import { CalendarClock, Check, Plus, Trash2 } from "lucide-react"
+import { useId, useMemo, useState } from "react"
 import { toast } from "sonner"
 
 const initialBillForm = {
@@ -40,6 +41,7 @@ export default function BillsOverview() {
   const { balanceHidden } = usePrivacy()
   const [billDialogOpen, setBillDialogOpen] = useState(false)
   const [billForm, setBillForm] = useState(initialBillForm)
+  const fieldId = useId()
 
   const categories = useCategories()
   const bills = useBills()
@@ -110,9 +112,9 @@ export default function BillsOverview() {
         <p className="text-sm text-muted-foreground">
           {dueThisMonth.length} bills · {maskAmount(formatKES(dueTotal), balanceHidden)} this month
         </p>
-        <Button type="button" variant="ghost" size="sm" className="min-h-11 rounded-xl px-4 text-sm" onClick={() => setBillDialogOpen(true)}>
+        <Button type="button" className="min-h-11 rounded-xl" onClick={() => setBillDialogOpen(true)}>
           <Plus className="h-4 w-4" />
-          Add
+          Add Bill
         </Button>
       </div>
 
@@ -127,20 +129,28 @@ export default function BillsOverview() {
             const badgeVariant = paid ? "success" : proximity < 0 ? "destructive" : proximity <= 5 ? "warning" : "secondary"
 
             return (
-              <div key={bill.id} className="flex h-[60px] items-center gap-1 border-b border-border/50 px-4 last:border-b-0 sm:px-3">
-                <button type="button" onClick={() => void handleTogglePaid(bill.id)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary text-muted-foreground">
-                    <CalendarClock className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold leading-tight">{bill.name}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">
-                      {category?.name ?? "Category"} · Day {bill.dueDay}
-                      {bill.isAutoPay ? " · Auto-pay" : ""}
-                    </p>
-                  </div>
-                  <p className="ml-auto shrink-0 text-sm font-semibold tabular-nums">{maskAmount(formatKES(bill.amount), balanceHidden)}</p>
+              <div key={bill.id} className="flex h-[60px] items-center gap-3 border-b border-border/50 px-4 last:border-b-0 sm:px-3">
+                <button
+                  type="button"
+                  onClick={() => void handleTogglePaid(bill.id)}
+                  aria-pressed={paid}
+                  aria-label={paid ? `Mark ${bill.name} unpaid` : `Mark ${bill.name} paid`}
+                  title={paid ? "Mark unpaid" : "Mark paid"}
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    paid ? "border-success bg-success/10 text-success" : "border-border text-muted-foreground hover:border-muted-foreground/60",
+                  )}
+                >
+                  {paid ? <Check className="h-4 w-4" /> : <CalendarClock className="h-4 w-4" />}
                 </button>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold leading-tight">{bill.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {category?.name ?? "Category"} · Day {bill.dueDay}
+                    {bill.isAutoPay ? " · Auto-pay" : ""}
+                  </p>
+                </div>
+                <p className="shrink-0 text-sm font-semibold tabular-nums">{maskAmount(formatKES(bill.amount), balanceHidden)}</p>
                 <Badge variant={badgeVariant} className={cn("shrink-0")}>{statusLabel}</Badge>
                 <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => void handleDeleteBill(bill.id)} aria-label="Delete bill">
                   <Trash2 className="h-4 w-4" />
@@ -153,65 +163,53 @@ export default function BillsOverview() {
         <div className="py-12 text-center text-sm text-muted-foreground">No bills added yet</div>
       )}
 
-      {billDialogOpen ? (
-        <>
-          <button type="button" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" onClick={() => setBillDialogOpen(false)} />
-          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-xl border bg-card p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Add bill</h3>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setBillDialogOpen(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <form className="space-y-4" onSubmit={handleAddBill}>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Name</label>
-                <Input value={billForm.name} onChange={(event) => setBillForm((current) => ({ ...current, name: event.target.value }))} placeholder="Bill" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Amount</label>
-                  <Input value={billForm.amount} onChange={(event) => setBillForm((current) => ({ ...current, amount: event.target.value }))} type="number" min="0" step="0.01" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Due day</label>
-                  <Input value={billForm.dueDay} onChange={(event) => setBillForm((current) => ({ ...current, dueDay: event.target.value }))} type="number" min="1" max="31" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Category</label>
-                <Select value={billForm.categoryId} onChange={(event) => setBillForm((current) => ({ ...current, categoryId: event.target.value }))}>
-                  <option value="">Select</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Frequency</label>
-                <Select value={billForm.frequency} onChange={(event) => setBillForm((current) => ({ ...current, frequency: event.target.value as typeof current.frequency }))}>
-                  <option value="monthly">Monthly</option>
-                  <option value="quarterly">Quarterly</option>
-                  <option value="annual">Annual</option>
-                </Select>
-              </div>
-              <label className="flex items-center gap-3 text-sm font-medium">
-                <input type="checkbox" checked={billForm.isAutoPay} onChange={(event) => setBillForm((current) => ({ ...current, isAutoPay: event.target.checked }))} className="h-4 w-4 rounded border-border text-primary" />
-                Auto-pay
-              </label>
-              <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setBillDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">Save</Button>
-              </div>
-            </form>
+      <BottomSheet open={billDialogOpen} onClose={() => setBillDialogOpen(false)} title="Add bill">
+        <form className="space-y-4" onSubmit={handleAddBill}>
+          <div className="space-y-2">
+            <label htmlFor={`${fieldId}-name`} className="text-sm font-medium">Name</label>
+            <Input id={`${fieldId}-name`} value={billForm.name} onChange={(event) => setBillForm((current) => ({ ...current, name: event.target.value }))} placeholder="Bill" className="h-11 text-base" />
           </div>
-        </>
-      ) : null}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor={`${fieldId}-amount`} className="text-sm font-medium">Amount</label>
+              <Input id={`${fieldId}-amount`} value={billForm.amount} onChange={(event) => setBillForm((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" className="h-11 text-base" />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor={`${fieldId}-dueDay`} className="text-sm font-medium">Due day</label>
+              <Input id={`${fieldId}-dueDay`} value={billForm.dueDay} onChange={(event) => setBillForm((current) => ({ ...current, dueDay: event.target.value }))} type="number" min="1" max="31" className="h-11 text-base" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor={`${fieldId}-category`} className="text-sm font-medium">Category</label>
+            <Select id={`${fieldId}-category`} value={billForm.categoryId} onChange={(event) => setBillForm((current) => ({ ...current, categoryId: event.target.value }))} className="h-11 text-base">
+              <option value="">Select</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor={`${fieldId}-frequency`} className="text-sm font-medium">Frequency</label>
+            <Select id={`${fieldId}-frequency`} value={billForm.frequency} onChange={(event) => setBillForm((current) => ({ ...current, frequency: event.target.value as typeof current.frequency }))} className="h-11 text-base">
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="annual">Annual</option>
+            </Select>
+          </div>
+          <label className="flex items-center gap-3 text-sm font-medium">
+            <input type="checkbox" checked={billForm.isAutoPay} onChange={(event) => setBillForm((current) => ({ ...current, isAutoPay: event.target.checked }))} className="h-4 w-4 rounded border-border text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+            Auto-pay
+          </label>
+          <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => setBillDialogOpen(false)} className="min-h-11 w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button type="submit" className="min-h-11 w-full sm:w-auto">Save</Button>
+          </div>
+        </form>
+      </BottomSheet>
     </div>
   )
 }

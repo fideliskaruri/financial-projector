@@ -126,13 +126,13 @@ export default function TransactionList() {
 
                 return (
                   <div key={transaction.id} className="flex h-[60px] items-center gap-1 border-b border-border/50 px-4 last:border-b-0 sm:px-3">
-                    <button type="button" onClick={() => setEditingTransaction(transaction)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                    <button type="button" onClick={() => setEditingTransaction(transaction)} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${category?.color ?? "#64748b"}1A`, color: category?.color ?? "#64748b" }}>
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold leading-tight">{transaction.description}</p>
-                        <p className="truncate text-[11px] text-muted-foreground">{category?.name ?? "Unassigned"}</p>
+                        <p className="truncate text-xs text-muted-foreground">{category?.name ?? "Unassigned"}</p>
                       </div>
                       <p className="ml-auto shrink-0 text-sm font-semibold tabular-nums">{maskAmount(formatKES(transaction.amount), balanceHidden)}</p>
                     </button>

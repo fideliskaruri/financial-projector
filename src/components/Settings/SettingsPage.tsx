@@ -160,8 +160,9 @@ export default function SettingsPage({ actualSpendingHint, dataMode, effectiveMo
                 <div key={section.id} className="rounded-xl border border-border/60 bg-background/30">
                   <button
                     type="button"
-                    className="flex h-14 w-full items-center gap-3 rounded-lg px-4 text-left hover:bg-secondary/50"
+                    className="flex h-14 w-full items-center gap-3 rounded-lg px-4 text-left hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     onClick={() => setOpenSection(isOpen ? null : section.id)}
+                    aria-expanded={isOpen}
                   >
                     <Icon className="h-4 w-4 text-muted-foreground" />
                     <span className="flex-1 text-sm font-medium">{section.title}</span>

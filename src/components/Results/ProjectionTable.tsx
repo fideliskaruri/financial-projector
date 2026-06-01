@@ -3,11 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MONTH_NAMES } from "@/data/defaults"
 import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { MonthlyRow } from "@/engine/types"
+import { currencyFormatter as currency } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Fragment, useMemo, useState } from "react"
-
-const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 
 interface ProjectionTableProps {
   rows: MonthlyRow[]

@@ -1,10 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card"
 import { usePrivacy } from "@/contexts/PrivacyContext"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone, MonthlyRow } from "@/engine/types"
 import { formatCompactKES } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
-import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import {
   Area,
@@ -31,7 +29,7 @@ interface BalanceChartProps {
 
 export default function BalanceChart({ rows, milestones = [], comparisonRows, comparisonSeries }: BalanceChartProps) {
   const { balanceHidden } = usePrivacy()
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== "undefined" && window.matchMedia("(max-width: 639px)").matches)
   const series = comparisonSeries ?? (comparisonRows ? [{ name: "Lean scenario", rows: comparisonRows }] : [])
   const normalizedSeries = series.map((entry, index) => ({ ...entry, key: `comparison-${index}` }))
   const seriesMaps = normalizedSeries.map((entry) => [entry.key, new Map(entry.rows.map((row) => [row.dateStr, row.endBalance]))] as const)
@@ -133,13 +131,9 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
     </div>
   )
 
-  if (isMobile) {
-    return <div className="-mx-4 overflow-hidden">{chart}</div>
-  }
-
   return (
-    <Card className={cn("rounded-xl")}>
-      <CardContent className="overflow-hidden p-0">{chart}</CardContent>
-    </Card>
+    <div className="-mx-4 overflow-hidden sm:mx-0 sm:rounded-xl sm:border sm:bg-card">
+      {chart}
+    </div>
   )
 }

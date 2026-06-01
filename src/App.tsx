@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/useAuth"
 import { useCategories, useMonthSummary } from "@/hooks/useBudget"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
 import { useProjection } from "@/hooks/useProjection"
-import { formatKES, formatMonthLabel, getMonthId } from "@/lib/finance"
+import { currencyFormatter, formatKES, formatMonthLabel, getMonthId } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
 import { syncAllInputs } from "@/lib/projectionRange"
 import { cn } from "@/lib/utils"
@@ -35,7 +35,7 @@ const InflowBreakdownChart = lazy(() => import("@/components/Results/InflowBreak
 const ScenarioManager = lazy(() => import("@/components/Scenarios/ScenarioManager"))
 const SettingsPage = lazy(() => import("@/components/Settings/SettingsPage"))
 
-const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
+const currency = currencyFormatter
 const actualSpendingWindowMonths = 3
 const validTabs: AppTab[] = ["dashboard", "budget", "transactions", "bills", "projections", "settings"]
 
@@ -94,8 +94,8 @@ function AuthLoadingScreen() {
 
 const suspenseFallback = <TabContentSkeleton />
 const balanceChartFallback = (
-  <div className="-mx-4 overflow-hidden px-4 sm:mx-0 sm:rounded-xl sm:border sm:bg-card sm:p-4">
-    <div className="h-[180px] animate-pulse rounded-xl bg-secondary sm:h-[300px] lg:h-[360px]" />
+  <div className="-mx-4 overflow-hidden sm:mx-0 sm:rounded-xl sm:border sm:bg-card">
+    <div className="h-[180px] animate-pulse bg-secondary sm:h-[300px] lg:h-[360px]" />
   </div>
 )
 
@@ -170,6 +170,7 @@ export default function App() {
       ? ((finalRow.endBalance - projectionInputs.params.startingBalance) / projectionInputs.params.startingBalance) * 100
       : 0
   const currentMonthLabel = formatMonthLabel(getMonthId(new Date()))
+  const budgetLoading = monthSummary === undefined
   const totalBudgeted = monthSummary?.totalBudgeted ?? 0
   const totalSpent = monthSummary?.totalSpent ?? 0
   const budgetRemaining = totalBudgeted - totalSpent
@@ -274,28 +275,38 @@ export default function App() {
                 <div className="space-y-5 lg:space-y-6">
                   <div className="space-y-3">
                     <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">{currentMonthLabel} · Spending</p>
-                    <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
-                      <p className="text-4xl font-bold tabular-nums slashed-zero tracking-tight lg:text-5xl">{maskAmount(formatKES(totalSpent), balanceHidden)}</p>
-                      {totalBudgeted > 0 ? <p className="pb-1.5 text-sm text-muted-foreground">of {maskAmount(formatKES(totalBudgeted), balanceHidden)} budget</p> : null}
-                    </div>
-
-                    {totalBudgeted > 0 ? (
-                      <div className="space-y-1.5">
-                        <div className="h-2 overflow-hidden rounded-full bg-muted">
-                          <div className={cn("h-full rounded-full transition-all", budgetOver ? "bg-destructive" : "bg-primary")} style={{ width: `${budgetUsedPercent}%` }} />
-                        </div>
-                        <p className="text-sm">
-                          <span className={cn("font-medium tabular-nums", budgetOver ? "text-destructive" : "text-success")}>
-                            {maskAmount(formatKES(Math.abs(budgetRemaining)), balanceHidden)} {budgetOver ? "over budget" : "left"}
-                          </span>
-                          <span className="text-muted-foreground"> · {budgetUsedPercent}% used</span>
-                        </p>
+                    {budgetLoading ? (
+                      <div className="space-y-3" aria-hidden>
+                        <div className="h-11 w-48 animate-pulse rounded-lg bg-secondary lg:h-12" />
+                        <div className="h-2 animate-pulse rounded-full bg-secondary" />
+                        <div className="h-4 w-40 animate-pulse rounded bg-secondary" />
                       </div>
                     ) : (
-                      <Button type="button" variant="outline" className="rounded-xl" onClick={() => setActiveTab("budget")}>
-                        <PiggyBank className="h-4 w-4" />
-                        Set up your budget
-                      </Button>
+                      <>
+                        <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+                          <p className="text-4xl font-bold tabular-nums slashed-zero tracking-tight lg:text-5xl">{maskAmount(formatKES(totalSpent), balanceHidden)}</p>
+                          {totalBudgeted > 0 ? <p className="pb-1.5 text-sm text-muted-foreground">of {maskAmount(formatKES(totalBudgeted), balanceHidden)} budget</p> : null}
+                        </div>
+
+                        {totalBudgeted > 0 ? (
+                          <div className="space-y-1.5">
+                            <div className="h-2 overflow-hidden rounded-full bg-muted">
+                              <div className={cn("h-full rounded-full transition-all", budgetOver ? "bg-destructive" : "bg-primary")} style={{ width: `${budgetUsedPercent}%` }} />
+                            </div>
+                            <p className="text-sm">
+                              <span className={cn("font-medium tabular-nums", budgetOver ? "text-destructive" : "text-success")}>
+                                {maskAmount(formatKES(Math.abs(budgetRemaining)), balanceHidden)} {budgetOver ? "over budget" : "left"}
+                              </span>
+                              <span className="text-muted-foreground"> · {budgetUsedPercent}% used</span>
+                            </p>
+                          </div>
+                        ) : (
+                          <Button type="button" variant="outline" className="rounded-xl" onClick={() => setActiveTab("budget")}>
+                            <PiggyBank className="h-4 w-4" />
+                            Set up your budget
+                          </Button>
+                        )}
+                      </>
                     )}
                   </div>
 
@@ -350,7 +361,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="hidden gap-4 xl:grid xl:grid-cols-2">
+                    <div className="hidden gap-4 lg:grid lg:grid-cols-2">
                       <MilestoneMarkers milestones={projection.milestones} />
                       <SummaryCards yearlySummaries={projection.yearlySummaries} />
                     </div>

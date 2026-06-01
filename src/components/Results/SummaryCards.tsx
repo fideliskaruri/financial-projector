@@ -1,9 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { YearlySummary } from "@/engine/types"
+import { currencyFormatter as currency } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
-
-const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
 
 interface SummaryCardsProps {
   yearlySummaries: YearlySummary[]
