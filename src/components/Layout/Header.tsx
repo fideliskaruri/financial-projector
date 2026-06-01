@@ -22,7 +22,7 @@ interface HeaderProps {
   onShare: () => void
   onToggleBalanceHidden: () => void
   onToggleDarkMode: () => void
-  user: User
+  user: User | null
 }
 
 function getUserLabel(user: User) {
@@ -35,7 +35,7 @@ function getUserInitial(user: User) {
 
 export default function Header({ activeTab, balanceHidden, darkMode, onExport, onLogout, onReset, onShare, onToggleBalanceHidden, onToggleDarkMode, user }: HeaderProps) {
   const showProjectionActions = activeTab === "projections" || activeTab === "settings"
-  const userLabel = getUserLabel(user)
+  const userLabel = user ? getUserLabel(user) : "Guest"
 
   return (
     <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-sm">
@@ -68,25 +68,29 @@ export default function Header({ activeTab, balanceHidden, darkMode, onExport, o
           <Button type="button" variant="ghost" size="icon" onClick={onToggleDarkMode} aria-label="Toggle theme">
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
-          {user.photoURL ? (
-            <img
-              src={user.photoURL}
-              alt={userLabel}
-              title={userLabel}
-              className="ml-1 h-7 w-7 rounded-full border border-border/70 object-cover"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div
-              title={userLabel}
-              className="ml-1 flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-secondary text-[11px] font-semibold text-foreground"
-            >
-              {getUserInitial(user)}
-            </div>
-          )}
-          <Button type="button" variant="ghost" size="icon" onClick={() => void onLogout()} aria-label="Logout" title={userLabel}>
-            <LogOut className="h-4 w-4" />
-          </Button>
+          {user ? (
+            <>
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt={userLabel}
+                  title={userLabel}
+                  className="ml-1 h-7 w-7 rounded-full border border-border/70 object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <div
+                  title={userLabel}
+                  className="ml-1 flex h-7 w-7 items-center justify-center rounded-full border border-border/70 bg-secondary text-[11px] font-semibold text-foreground"
+                >
+                  {getUserInitial(user)}
+                </div>
+              )}
+              <Button type="button" variant="ghost" size="icon" onClick={() => void onLogout()} aria-label="Logout" title={userLabel}>
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </>
+          ) : null}
         </div>
       </div>
     </header>

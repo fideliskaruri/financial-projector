@@ -102,7 +102,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useLocalStorage<boolean>("financial-projector-dark-mode", true)
   const [dataMode, setDataMode] = useLocalStorage<"actual" | "simulation">("financial-projector-data-mode", "simulation")
   const [balanceHidden, setBalanceHidden] = useLocalStorage<boolean>("financial-projector-hide-balance", false)
-  const { user, loading, signInWithGitHub, logout } = useAuth()
+  const { user, loading, authError, signInWithGitHub, logout } = useAuth()
   const sharedScenarioLoadedRef = useRef(false)
 
   const activeTab = normalizeTab(storedActiveTab)
@@ -215,7 +215,7 @@ export default function App() {
     return <AuthLoadingScreen />
   }
 
-  if (!user) {
+  if (!user && !authError) {
     return <LoginScreen onSignIn={signInWithGitHub} />
   }
 

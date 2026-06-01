@@ -1,14 +1,14 @@
 {
-  "name": "Financial Projector",
-  "short_name": "FinProj",
-  "description": "MMF balance projection tool",
-  "start_url": "/financial-projector/",
+  "name": "FinManager",
+  "short_name": "FinManager",
+  "description": "Personal financial manager and projector",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#0d0f1a",
-  "theme_color": "#4f46e5",
+  "background_color": "#0B0B0B",
+  "theme_color": "#0B0B0B",
   "icons": [
     {
-      "src": "/financial-projector/favicon.svg",
+      "src": "favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

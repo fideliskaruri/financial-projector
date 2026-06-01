@@ -31,7 +31,7 @@ interface SettingsPageProps {
   onLogout: () => Promise<void>
   setDataMode: (value: "actual" | "simulation") => void
   setInputs: (value: AllInputs | ((current: AllInputs) => AllInputs)) => void
-  user: User
+  user: User | null
 }
 
 function getUserLabel(user: User) {
@@ -161,31 +161,33 @@ export default function SettingsPage({ actualSpendingHint, dataMode, effectiveMo
         </CardContent>
       </Card>
 
-      <Card className="border bg-card">
-        <CardHeader>
-          <CardTitle>Account</CardTitle>
-          <CardDescription>Signed in with Firebase GitHub authentication.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            {user.photoURL ? (
-              <img src={user.photoURL} alt={getUserLabel(user)} className="h-12 w-12 rounded-full border border-border/70 object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-secondary text-sm font-semibold text-foreground">
-                {getUserInitial(user)}
+      {user ? (
+        <Card className="border bg-card">
+          <CardHeader>
+            <CardTitle>Account</CardTitle>
+            <CardDescription>Signed in with Firebase GitHub authentication.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              {user.photoURL ? (
+                <img src={user.photoURL} alt={getUserLabel(user)} className="h-12 w-12 rounded-full border border-border/70 object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-border/70 bg-secondary text-sm font-semibold text-foreground">
+                  {getUserInitial(user)}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{getUserLabel(user)}</p>
+                <p className="truncate text-sm text-muted-foreground">{user.email ?? "GitHub account"}</p>
               </div>
-            )}
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{getUserLabel(user)}</p>
-              <p className="truncate text-sm text-muted-foreground">{user.email ?? "GitHub account"}</p>
             </div>
-          </div>
-          <Button type="button" variant="outline" onClick={() => void onLogout()}>
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
-        </CardContent>
-      </Card>
+            <Button type="button" variant="outline" onClick={() => void onLogout()}>
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <p className="pb-2 text-center text-xs text-muted-foreground">v{APP_VERSION} · Made by Fidelis</p>
     </div>
