@@ -1,6 +1,8 @@
-import { onAuthStateChanged, signInWithPopup, signOut, type User } from "firebase/auth"
+import { getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedirect, signOut, type User } from "firebase/auth"
 import { useEffect, useRef, useState } from "react"
 import { auth, githubProvider } from "@/lib/firebase"
+
+const isMobile = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -17,6 +19,11 @@ export function useAuth() {
       }
     }, 5000)
 
+    // Handle redirect result (mobile sign-in flow)
+    getRedirectResult(auth).catch(() => {
+      // Redirect result not available — ignore
+    })
+
     const unsubscribe = onAuthStateChanged(
       auth,
       (nextUser) => {
@@ -25,7 +32,6 @@ export function useAuth() {
         loadingRef.current = false
       },
       () => {
-        // Auth service unavailable — let user through
         setAuthError(true)
         setLoading(false)
         loadingRef.current = false
@@ -38,7 +44,13 @@ export function useAuth() {
     }
   }, [])
 
-  const signInWithGitHub = () => signInWithPopup(auth, githubProvider)
+  const signInWithGitHub = () => {
+    if (isMobile()) {
+      return signInWithRedirect(auth, githubProvider)
+    }
+    return signInWithPopup(auth, githubProvider)
+  }
+
   const logout = () => signOut(auth)
 
   return { user, loading, authError, signInWithGitHub, logout }
