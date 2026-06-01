@@ -225,7 +225,7 @@ export default function App() {
       <div className="min-h-[100dvh] overflow-x-hidden bg-background text-foreground">
         <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
 
-        <div className="min-h-[100dvh] overflow-x-hidden">
+        <div className="min-h-[100dvh]">
           <Header
             activeTab={activeTab}
             balanceHidden={balanceHidden}
@@ -234,25 +234,13 @@ export default function App() {
             onLogout={logout}
             onReset={handleReset}
             onShare={handleShare}
-            onToggleBalanceHidden={() => {
-              setBalanceHidden((value) => {
-                const next = !value
-                toast.info(next ? "Balances hidden" : "Balances visible")
-                return next
-              })
-            }}
-            onToggleDarkMode={() => {
-              setDarkMode((value) => {
-                const next = !value
-                toast.info(next ? "Dark mode enabled" : "Light mode enabled")
-                return next
-              })
-            }}
+            onToggleBalanceHidden={() => setBalanceHidden((value) => !value)}
+            onToggleDarkMode={() => setDarkMode((value) => !value)}
             user={user}
           />
           <BottomNav activeTab={activeTab} onSelectTab={setActiveTab} />
 
-          <main className="overscroll-y-contain px-4 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pl-60 lg:pb-0">
+          <main className="px-4 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pl-60 lg:pb-0">
             <ErrorBoundary key={activeTab} onRetry={() => window.location.reload()}>
               {activeTab === "dashboard" ? (
                 <div className="space-y-3 lg:space-y-6">

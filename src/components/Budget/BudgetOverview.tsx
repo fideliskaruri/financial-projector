@@ -54,6 +54,7 @@ export default function BudgetOverview() {
   const { balanceHidden } = usePrivacy()
   const [month, setMonth] = useState(getMonthId(new Date()))
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>()
+  const [addTransactionCategoryId, setAddTransactionCategoryId] = useState<string>()
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [categoryForm, setCategoryForm] = useState(initialCategoryForm)
 
@@ -141,6 +142,7 @@ export default function BudgetOverview() {
                 selected={activeCategoryId === categorySummary.categoryId}
                 onClick={() => {
                   setSelectedCategoryId(categorySummary.categoryId)
+                  setAddTransactionCategoryId(categorySummary.categoryId)
                 }}
               />
             </div>
@@ -203,7 +205,13 @@ export default function BudgetOverview() {
         </CardContent>
       </Card>
 
-      <AddTransactionDialog key={activeCategoryId ?? "budget-add"} categories={categories} initialCategoryId={activeCategoryId} />
+      <AddTransactionDialog
+        key={addTransactionCategoryId ?? "budget-add"}
+        categories={categories}
+        initialCategoryId={addTransactionCategoryId}
+        open={Boolean(addTransactionCategoryId)}
+        onOpenChange={(open) => { if (!open) setAddTransactionCategoryId(undefined) }}
+      />
 
       {categoryDialogOpen ? (
         <>
