@@ -1,5 +1,6 @@
 import LoginScreen from "@/components/Auth/LoginScreen"
 import BillsOverview from "@/components/Bills/BillsOverview"
+import AddTransactionDialog from "@/components/Budget/AddTransactionDialog"
 import BudgetOverview from "@/components/Budget/BudgetOverview"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import BottomNav from "@/components/Layout/BottomNav"
@@ -15,16 +16,17 @@ import { DEFAULT_INPUTS } from "@/data/defaults"
 import type { AllInputs } from "@/engine/types"
 import { useActualSpendingDetails } from "@/hooks/useActualSpending"
 import { useAuth } from "@/hooks/useAuth"
-import { useMonthSummary } from "@/hooks/useBudget"
+import { useCategories, useMonthSummary } from "@/hooks/useBudget"
 import { useLocalStorage } from "@/hooks/useLocalStorage"
 import { useProjection } from "@/hooks/useProjection"
-import { formatKES, getMonthId } from "@/lib/finance"
+import { formatKES, formatMonthLabel, getMonthId } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
+import { syncAllInputs } from "@/lib/projectionRange"
 import { cn } from "@/lib/utils"
 import type { AppTab } from "@/types/navigation"
 import { decodeInputsFromUrl, encodeInputsToUrl } from "@/utils/urlEncoding"
-import { BarChart3, Download, Eye, EyeOff, LoaderCircle, Plus } from "lucide-react"
-import { lazy, Suspense, useEffect, useMemo, useRef } from "react"
+import { BarChart3, Eye, EyeOff, LoaderCircle, PiggyBank, Plus } from "lucide-react"
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 const BalanceChart = lazy(() => import("@/components/Results/BalanceChart"))
@@ -98,15 +100,30 @@ const balanceChartFallback = (
 )
 
 export default function App() {
-  const [inputs, setInputs] = useLocalStorage<AllInputs>("financial-projector-inputs", cloneInputs(DEFAULT_INPUTS))
+  const [storedInputs, setStoredInputs] = useLocalStorage<AllInputs>("financial-projector-inputs", cloneInputs(DEFAULT_INPUTS))
   const [storedActiveTab, setStoredActiveTab] = useLocalStorage<string>("financial-projector-active-tab", "dashboard")
   const [darkMode, setDarkMode] = useLocalStorage<boolean>("financial-projector-dark-mode", true)
   const [dataMode, setDataMode] = useLocalStorage<"actual" | "simulation">("financial-projector-data-mode", "simulation")
   const [balanceHidden, setBalanceHidden] = useLocalStorage<boolean>("financial-projector-hide-balance", false)
+  const [addTransactionOpen, setAddTransactionOpen] = useState(false)
+  const [addTransactionDialogKey, setAddTransactionDialogKey] = useState(0)
   const { user, loading, authError, signInWithGitHub, logout } = useAuth()
   const sharedScenarioLoadedRef = useRef(false)
 
+  const inputs = useMemo(() => syncAllInputs(storedInputs), [storedInputs])
+  const setInputs = useCallback(
+    (value: AllInputs | ((current: AllInputs) => AllInputs)) => {
+      setStoredInputs((current) => {
+        const normalizedCurrent = syncAllInputs(current)
+        const nextValue = typeof value === "function" ? value(normalizedCurrent) : value
+        return syncAllInputs(nextValue)
+      })
+    },
+    [setStoredInputs],
+  )
+
   const activeTab = normalizeTab(storedActiveTab)
+  const categories = useCategories()
   const monthSummary = useMonthSummary(getMonthId(new Date()))
   const actualSpending = useActualSpendingDetails(actualSpendingWindowMonths)
   const effectiveMonthlySpending = dataMode === "actual" ? actualSpending.value ?? inputs.params.monthlySpending : inputs.params.monthlySpending
@@ -152,6 +169,12 @@ export default function App() {
     projectionInputs.params.startingBalance > 0 && finalRow
       ? ((finalRow.endBalance - projectionInputs.params.startingBalance) / projectionInputs.params.startingBalance) * 100
       : 0
+  const currentMonthLabel = formatMonthLabel(getMonthId(new Date()))
+  const totalBudgeted = monthSummary?.totalBudgeted ?? 0
+  const totalSpent = monthSummary?.totalSpent ?? 0
+  const budgetRemaining = totalBudgeted - totalSpent
+  const budgetUsedPercent = totalBudgeted > 0 ? Math.min(100, Math.round((totalSpent / totalBudgeted) * 100)) : 0
+  const budgetOver = budgetRemaining < 0
   const dashboardModeLabel =
     dataMode === "actual"
       ? actualSpending.source === "transactions"
@@ -211,6 +234,10 @@ export default function App() {
   }
 
   const setActiveTab = (tab: AppTab) => setStoredActiveTab(tab)
+  const handleOpenAddTransaction = () => {
+    setAddTransactionDialogKey((key) => key + 1)
+    setAddTransactionOpen(true)
+  }
 
   if (loading) {
     return <AuthLoadingScreen />
@@ -230,6 +257,7 @@ export default function App() {
             activeTab={activeTab}
             balanceHidden={balanceHidden}
             darkMode={darkMode}
+            onAdd={handleOpenAddTransaction}
             onExport={handleExport}
             onLogout={logout}
             onReset={handleReset}
@@ -243,79 +271,89 @@ export default function App() {
           <main className="px-4 py-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-8 lg:pl-60 lg:pb-0">
             <ErrorBoundary key={activeTab} onRetry={() => window.location.reload()}>
               {activeTab === "dashboard" ? (
-                <div className="space-y-3 lg:space-y-6">
-                  <div className="space-y-3 lg:hidden">
-                    <div className="space-y-2 text-center">
-                      <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-muted-foreground">{finalRow?.dateStr ?? ""}</p>
-                      <p className="text-4xl font-bold tabular-nums tracking-tight">{maskAmount(currency.format(finalRow?.endBalance ?? 0), balanceHidden)}</p>
+                <div className="space-y-5 lg:space-y-6">
+                  <div className="space-y-3">
+                    <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground">{currentMonthLabel} · Spending</p>
+                    <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+                      <p className="text-4xl font-bold tabular-nums slashed-zero tracking-tight lg:text-5xl">{maskAmount(formatKES(totalSpent), balanceHidden)}</p>
+                      {totalBudgeted > 0 ? <p className="pb-1.5 text-sm text-muted-foreground">of {maskAmount(formatKES(totalBudgeted), balanceHidden)} budget</p> : null}
                     </div>
-                    <div className="grid grid-cols-4 gap-2">
-                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setActiveTab("transactions")}>
-                        <Plus className="h-4 w-4" />
-                        <span className="text-[11px]">Add</span>
+
+                    {totalBudgeted > 0 ? (
+                      <div className="space-y-1.5">
+                        <div className="h-2 overflow-hidden rounded-full bg-muted">
+                          <div className={cn("h-full rounded-full transition-all", budgetOver ? "bg-destructive" : "bg-primary")} style={{ width: `${budgetUsedPercent}%` }} />
+                        </div>
+                        <p className="text-sm">
+                          <span className={cn("font-medium tabular-nums", budgetOver ? "text-destructive" : "text-success")}>
+                            {maskAmount(formatKES(Math.abs(budgetRemaining)), balanceHidden)} {budgetOver ? "over budget" : "left"}
+                          </span>
+                          <span className="text-muted-foreground"> · {budgetUsedPercent}% used</span>
+                        </p>
+                      </div>
+                    ) : (
+                      <Button type="button" variant="outline" className="rounded-xl" onClick={() => setActiveTab("budget")}>
+                        <PiggyBank className="h-4 w-4" />
+                        Set up your budget
                       </Button>
-                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setActiveTab("projections")}>
-                        <BarChart3 className="h-4 w-4" />
-                        <span className="text-[11px]">Charts</span>
-                      </Button>
-                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setBalanceHidden((v) => !v)}>
-                        {balanceHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        <span className="text-[11px]">Privacy</span>
-                      </Button>
-                      <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={handleExport}>
-                        <Download className="h-4 w-4" />
-                        <span className="text-[11px]">Export</span>
-                      </Button>
-                    </div>
+                    )}
                   </div>
 
-                  <div className="hidden lg:block">
-                    <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projected Balance · {finalRow?.dateStr ?? ""}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-2">
-                      <p className="text-4xl font-bold tabular-nums tracking-tight lg:text-5xl">{maskAmount(currency.format(finalRow?.endBalance ?? 0), balanceHidden)}</p>
+                  <div className="grid grid-cols-4 gap-2">
+                    <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={handleOpenAddTransaction}>
+                      <Plus className="h-4 w-4" />
+                      <span className="text-[11px]">Add</span>
+                    </Button>
+                    <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setActiveTab("budget")}>
+                      <PiggyBank className="h-4 w-4" />
+                      <span className="text-[11px]">Budget</span>
+                    </Button>
+                    <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setBalanceHidden((v) => !v)}>
+                      {balanceHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                      <span className="text-[11px]">Privacy</span>
+                    </Button>
+                    <Button type="button" variant="ghost" className="flex h-14 min-w-0 flex-col gap-1 rounded-xl px-2" onClick={() => setActiveTab("projections")}>
+                      <BarChart3 className="h-4 w-4" />
+                      <span className="text-[11px]">Charts</span>
+                    </Button>
+                  </div>
+
+                  <div className="space-y-3 border-t border-border/60 pt-5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Projected · {finalRow?.dateStr ?? ""}</p>
                       <Badge variant={dataMode === "actual" ? "success" : "secondary"} className="text-xs">
                         {dashboardModeLabel}
                       </Badge>
                     </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                      <span className="text-muted-foreground">
-                        Interest <span className="font-medium tabular-nums text-foreground">{maskAmount(currency.format(totalInterest), balanceHidden)}</span>
-                      </span>
-                      <span className="text-muted-foreground">
-                        Growth <span className="font-medium tabular-nums text-success">{growthPercent.toFixed(0)}%</span>
-                      </span>
-                      {(monthSummary?.totalBudgeted ?? 0) > 0 ? (
+                    <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
+                      <p className="text-2xl font-semibold tabular-nums slashed-zero tracking-tight lg:text-3xl">{maskAmount(currency.format(finalRow?.endBalance ?? 0), balanceHidden)}</p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 pb-1 text-sm">
                         <span className="text-muted-foreground">
-                          Budget used{" "}
-                          <span
-                            className={cn(
-                              "font-medium tabular-nums",
-                              (monthSummary?.totalSpent ?? 0) > (monthSummary?.totalBudgeted ?? 0) ? "text-destructive" : "text-foreground",
-                            )}
-                          >
-                            {Math.round(((monthSummary?.totalSpent ?? 0) / (monthSummary?.totalBudgeted ?? 1)) * 100)}%
-                          </span>
+                          Interest <span className="font-medium tabular-nums text-foreground">{maskAmount(currency.format(totalInterest), balanceHidden)}</span>
                         </span>
-                      ) : null}
+                        <span className="text-muted-foreground">
+                          Growth <span className="font-medium tabular-nums text-success">{growthPercent.toFixed(0)}%</span>
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <Suspense fallback={balanceChartFallback}>
-                    <BalanceChart rows={projection.rows} milestones={projection.milestones} />
-                  </Suspense>
+                    <Suspense fallback={balanceChartFallback}>
+                      <BalanceChart rows={projection.rows} milestones={projection.milestones} />
+                    </Suspense>
 
-                  <div className="-mx-4 flex gap-3 overflow-x-auto px-4 lg:hidden">
-                    <div className="w-[280px] flex-shrink-0">
+                    <div className="-mx-4 flex gap-3 overflow-x-auto px-4 lg:hidden">
+                      <div className="w-[280px] flex-shrink-0">
+                        <MilestoneMarkers milestones={projection.milestones} />
+                      </div>
+                      <div className="w-[280px] flex-shrink-0">
+                        <SummaryCards yearlySummaries={projection.yearlySummaries} />
+                      </div>
+                    </div>
+
+                    <div className="hidden gap-4 xl:grid xl:grid-cols-2">
                       <MilestoneMarkers milestones={projection.milestones} />
-                    </div>
-                    <div className="w-[280px] flex-shrink-0">
                       <SummaryCards yearlySummaries={projection.yearlySummaries} />
                     </div>
-                  </div>
-
-                  <div className="hidden gap-4 xl:grid xl:grid-cols-2">
-                    <MilestoneMarkers milestones={projection.milestones} />
-                    <SummaryCards yearlySummaries={projection.yearlySummaries} />
                   </div>
                 </div>
               ) : null}
@@ -369,6 +407,7 @@ export default function App() {
               ) : null}
             </ErrorBoundary>
           </main>
+          <AddTransactionDialog key={addTransactionDialogKey} categories={categories} open={addTransactionOpen} onOpenChange={setAddTransactionOpen} hideFloatingTrigger />
         </div>
       </div>
     </PrivacyContext.Provider>

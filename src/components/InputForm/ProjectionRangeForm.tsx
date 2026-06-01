@@ -1,7 +1,11 @@
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
+import { monthYearToString } from "@/data/defaults"
 import type { MonthYear } from "@/engine/types"
+import { PROJECTION_YEAR_OPTIONS } from "@/lib/projectionRange"
 
 const months = [
   { value: 1, label: "Jan" },
@@ -21,39 +25,61 @@ const months = [
 interface ProjectionRangeFormProps {
   startDate: MonthYear
   endDate: MonthYear
-  onChange: (range: { startDate: MonthYear; endDate: MonthYear }) => void
+  projectionYears: number
+  onChange: (range: { startDate: MonthYear; projectionYears: number }) => void
 }
 
-export default function ProjectionRangeForm({ startDate, endDate, onChange }: ProjectionRangeFormProps) {
+export default function ProjectionRangeForm({ startDate, endDate, projectionYears, onChange }: ProjectionRangeFormProps) {
+  const updateStartDate = (updates: Partial<MonthYear>) => {
+    onChange({ startDate: { ...startDate, ...updates }, projectionYears })
+  }
+
   return (
     <div>
       <Card className="border bg-card">
         <CardHeader>
           <CardTitle>Projection range</CardTitle>
-          <CardDescription>Forecast period.</CardDescription>
+          <CardDescription>Pick a start month and how many calendar years to project.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border p-4">
+        <CardContent className="space-y-4">
+          <div className="rounded-2xl border p-4">
             <p className="mb-3 text-sm font-medium text-muted-foreground">Start date</p>
             <div className="grid gap-3 sm:grid-cols-2">
-              <Select value={startDate.month} onChange={(event) => onChange({ startDate: { ...startDate, month: Number(event.target.value) }, endDate })}>
+              <Select value={startDate.month} onChange={(event) => updateStartDate({ month: Number(event.target.value) })}>
                 {months.map((month) => (
                   <option key={month.value} value={month.value}>{month.label}</option>
                 ))}
               </Select>
-              <Input type="number" value={startDate.year} onChange={(event) => onChange({ startDate: { ...startDate, year: Number(event.target.value) }, endDate })} />
+              <Input type="number" value={startDate.year} onChange={(event) => updateStartDate({ year: Number(event.target.value) })} />
             </div>
           </div>
 
-          <div className="rounded-xl border p-4">
-            <p className="mb-3 text-sm font-medium text-muted-foreground">End date</p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Select value={endDate.month} onChange={(event) => onChange({ startDate, endDate: { ...endDate, month: Number(event.target.value) } })}>
-                {months.map((month) => (
-                  <option key={month.value} value={month.value}>{month.label}</option>
-                ))}
-              </Select>
-              <Input type="number" value={endDate.year} onChange={(event) => onChange({ startDate, endDate: { ...endDate, year: Number(event.target.value) } })} />
+          <div className="rounded-2xl border p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Project ahead</p>
+                <p className="mt-1 text-xs text-muted-foreground">Choose a quick duration and the end date updates automatically.</p>
+              </div>
+              <Badge variant="secondary">Ends {monthYearToString(endDate)}</Badge>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {PROJECTION_YEAR_OPTIONS.map((option) => {
+                const isActive = option === projectionYears
+
+                return (
+                  <Button
+                    key={option}
+                    type="button"
+                    size="sm"
+                    variant={isActive ? "default" : "outline"}
+                    className="rounded-full px-4"
+                    aria-pressed={isActive}
+                    onClick={() => onChange({ startDate, projectionYears: option })}
+                  >
+                    {option}y
+                  </Button>
+                )
+              })}
             </div>
           </div>
         </CardContent>

@@ -4,6 +4,7 @@ export interface FinancialParams {
   mmfMonthlyInterestRate: number;
   startingBalance: number;
   startDate: MonthYear;
+  projectionYears?: number;
   endDate: MonthYear;
 }
 

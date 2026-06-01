@@ -1,3 +1,4 @@
+import BottomSheet from "@/components/ui/BottomSheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
@@ -5,8 +6,8 @@ import type { SpendingCategory, Transaction } from "@/db/database"
 import { addTransaction, updateTransaction } from "@/hooks/useBudget"
 import { getTodayIsoDate } from "@/lib/finance"
 import { cn } from "@/lib/utils"
-import { AnimatePresence, motion } from "motion/react"
-import { Plus, X } from "lucide-react"
+import { Plus } from "lucide-react"
+import { motion } from "motion/react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -52,6 +53,11 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
   }
 
   const resetDraft = () => setDraft(createDraft(categories, initialTransaction, initialCategoryId))
+
+  const closeDialog = () => {
+    resetDraft()
+    setDialogOpen(false)
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -107,49 +113,14 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.15 }}
         >
-          <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={openDialog} disabled={categories.length === 0}>
+          <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={openDialog} aria-label="Add transaction">
             <Plus className="h-5 w-5" />
           </Button>
         </motion.div>
       ) : null}
 
-      <AnimatePresence>
-        {isOpen ? (
-          <>
-            <motion.button
-              type="button"
-              className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              onClick={() => setDialogOpen(false)}
-            />
-            <motion.div
-              className="fixed inset-x-0 bottom-0 z-50 w-full overflow-y-auto rounded-t-3xl border bg-card p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl max-sm:max-h-[85dvh] sm:inset-x-4 sm:top-1/2 sm:bottom-auto sm:mx-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-md sm:-translate-y-1/2 sm:rounded-3xl"
-              initial={{ opacity: 0, y: 20, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.98 }}
-              transition={{ duration: 0.15 }}
-            >
-              <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-muted sm:hidden" />
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{dialogTitle}</h3>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-11 w-11"
-                  onClick={() => {
-                    resetDraft()
-                    setDialogOpen(false)
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <form className="space-y-4" onSubmit={handleSubmit}>
+      <BottomSheet open={isOpen} onClose={closeDialog} title={dialogTitle}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Amount</label>
                   <Input value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" placeholder="0" className="h-11 text-base" />
@@ -180,10 +151,7 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      resetDraft()
-                      setDialogOpen(false)
-                    }}
+                    onClick={closeDialog}
                     className="min-h-11 w-full sm:w-auto"
                   >
                     Cancel
@@ -192,11 +160,8 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
                     {submitLabel}
                   </Button>
                 </div>
-              </form>
-            </motion.div>
-          </>
-        ) : null}
-      </AnimatePresence>
+        </form>
+      </BottomSheet>
     </>
   )
 }

@@ -1,5 +1,6 @@
 import AddTransactionDialog from "@/components/Budget/AddTransactionDialog"
-import CategoryCard from "@/components/Budget/CategoryCard"
+import CategoryRow from "@/components/Budget/CategoryRow"
+import BottomSheet from "@/components/ui/BottomSheet"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,7 +10,7 @@ import { addCategory, useCategories, useMonthSummary, useTransactions } from "@/
 import { categoryIconOptions, categoryIcons, formatKES, formatMonthLabel, getMonthId, longDateFormatter, shiftMonth, slugifyCategoryName } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
-import { ChevronLeft, ChevronRight, CircleDashed, Plus, X } from "lucide-react"
+import { ChevronLeft, ChevronRight, CircleDashed, Plus } from "lucide-react"
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
@@ -134,18 +135,17 @@ export default function BudgetOverview() {
       </div>
 
       <div className="space-y-3 2xl:grid 2xl:grid-cols-[minmax(0,1fr),320px] 2xl:items-start 2xl:gap-4 2xl:space-y-0">
-        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:px-0 xl:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-1">
           {summary.categories.map((categorySummary) => (
-            <div key={categorySummary.categoryId} className="w-[200px] flex-shrink-0 sm:w-auto">
-              <CategoryCard
-                summary={categorySummary}
-                selected={activeCategoryId === categorySummary.categoryId}
-                onClick={() => {
-                  setSelectedCategoryId(categorySummary.categoryId)
-                  setAddTransactionCategoryId(categorySummary.categoryId)
-                }}
-              />
-            </div>
+            <CategoryRow
+              key={categorySummary.categoryId}
+              summary={categorySummary}
+              selected={activeCategoryId === categorySummary.categoryId}
+              onClick={() => {
+                setSelectedCategoryId(categorySummary.categoryId)
+                setAddTransactionCategoryId(categorySummary.categoryId)
+              }}
+            />
           ))}
         </div>
 
@@ -162,7 +162,7 @@ export default function BudgetOverview() {
                       <Cell key={entry.categoryId} fill={entry.category?.color ?? "#6366f1"} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => maskAmount(formatKES(Number(value ?? 0)), balanceHidden)} />
+                  <Tooltip trigger="click" formatter={(value) => maskAmount(formatKES(Number(value ?? 0)), balanceHidden)} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -213,18 +213,8 @@ export default function BudgetOverview() {
         onOpenChange={(open) => { if (!open) setAddTransactionCategoryId(undefined) }}
       />
 
-      {categoryDialogOpen ? (
-        <>
-          <button type="button" className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm" onClick={() => setCategoryDialogOpen(false)} />
-          <div className="fixed inset-x-4 top-1/2 z-50 mx-auto w-full max-w-md -translate-y-1/2 rounded-xl border bg-card p-6 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Add category</h3>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setCategoryDialogOpen(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <form className="space-y-4" onSubmit={handleAddCategory}>
+      <BottomSheet open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)} title="Add category">
+        <form className="space-y-4" onSubmit={handleAddCategory}>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Name</label>
                 <Input value={categoryForm.name} onChange={(event) => setCategoryForm((current) => ({ ...current, name: event.target.value }))} placeholder="Category" />
@@ -235,9 +225,11 @@ export default function BudgetOverview() {
                   <Input
                     value={categoryForm.monthlyBudget}
                     onChange={(event) => setCategoryForm((current) => ({ ...current, monthlyBudget: event.target.value }))}
+                    inputMode="decimal"
                     type="number"
                     min="0"
                     step="0.01"
+                    className="text-base"
                   />
                 </div>
                 <div className="space-y-2">
@@ -273,10 +265,8 @@ export default function BudgetOverview() {
                 </Button>
                 <Button type="submit">Save</Button>
               </div>
-            </form>
-          </div>
-        </>
-      ) : null}
+        </form>
+      </BottomSheet>
     </div>
   )
 }

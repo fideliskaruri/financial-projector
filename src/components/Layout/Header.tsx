@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import type { AppTab } from "@/types/navigation"
 import type { User } from "firebase/auth"
-import { Download, Eye, EyeOff, LogOut, Moon, RotateCcw, Share2, Sun } from "lucide-react"
+import { Download, Eye, EyeOff, LogOut, Moon, Plus, RotateCcw, Share2, Sun } from "lucide-react"
 
 const pageTitles: Record<AppTab, string> = {
   dashboard: "Dashboard",
@@ -16,6 +16,7 @@ interface HeaderProps {
   activeTab: AppTab
   balanceHidden: boolean
   darkMode: boolean
+  onAdd: () => void
   onExport: () => void
   onLogout: () => Promise<void>
   onReset: () => void
@@ -33,7 +34,7 @@ function getUserInitial(user: User) {
   return getUserLabel(user).trim().charAt(0).toUpperCase() || "F"
 }
 
-export default function Header({ activeTab, balanceHidden, darkMode, onExport, onLogout, onReset, onShare, onToggleBalanceHidden, onToggleDarkMode, user }: HeaderProps) {
+export default function Header({ activeTab, balanceHidden, darkMode, onAdd, onExport, onLogout, onReset, onShare, onToggleBalanceHidden, onToggleDarkMode, user }: HeaderProps) {
   const showProjectionActions = activeTab === "projections" || activeTab === "settings"
   const userLabel = user ? getUserLabel(user) : "Guest"
 
@@ -42,6 +43,10 @@ export default function Header({ activeTab, balanceHidden, darkMode, onExport, o
       <div className="flex h-12 items-center justify-between gap-3 px-4 sm:px-6 lg:pl-60 lg:pr-8">
         <h1 className="truncate text-sm font-medium text-foreground">{pageTitles[activeTab]}</h1>
         <div className="flex items-center gap-1">
+          <Button type="button" size="sm" onClick={onAdd} className="mr-1 gap-1.5 rounded-full px-3" aria-label="Add transaction" title="Add transaction">
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">Add</span>
+          </Button>
           {showProjectionActions ? (
             <>
               <Button type="button" variant="ghost" size="icon" onClick={onReset} aria-label="Reset">

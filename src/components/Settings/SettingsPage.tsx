@@ -13,6 +13,7 @@ import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { AllInputs } from "@/engine/types"
 import { formatKES } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
+import { deriveProjectionYears, getProjectionEndDate } from "@/lib/projectionRange"
 import { cn } from "@/lib/utils"
 import type { User } from "firebase/auth"
 import { Award, Banknote, Calendar, ChevronDown, ListChecks, LogOut, RefreshCw, TrendingUp, Zap } from "lucide-react"
@@ -45,6 +46,8 @@ function getUserInitial(user: User) {
 export default function SettingsPage({ actualSpendingHint, dataMode, effectiveMonthlySpending, inputs, monthSummaryTotalSpent, onLogout, setDataMode, setInputs, user }: SettingsPageProps) {
   const { balanceHidden } = usePrivacy()
   const [openSection, setOpenSection] = useState<SettingsSectionId | null>("income")
+  const projectionYears = inputs.params.projectionYears ?? deriveProjectionYears(inputs.params.startDate, inputs.params.endDate)
+  const projectedEndDate = getProjectionEndDate(inputs.params.startDate, projectionYears)
 
   const sections = useMemo(
     () => [
@@ -69,8 +72,19 @@ export default function SettingsPage({ actualSpendingHint, dataMode, effectiveMo
         content: (
           <ProjectionRangeForm
             startDate={inputs.params.startDate}
-            endDate={inputs.params.endDate}
-            onChange={({ startDate, endDate }) => setInputs((current) => ({ ...current, params: { ...current.params, startDate, endDate } }))}
+            endDate={projectedEndDate}
+            projectionYears={projectionYears}
+            onChange={({ startDate, projectionYears: nextProjectionYears }) =>
+              setInputs((current) => ({
+                ...current,
+                params: {
+                  ...current.params,
+                  startDate,
+                  projectionYears: nextProjectionYears,
+                  endDate: getProjectionEndDate(startDate, nextProjectionYears),
+                },
+              }))
+            }
           />
         ),
       },
@@ -105,7 +119,7 @@ export default function SettingsPage({ actualSpendingHint, dataMode, effectiveMo
         content: <SpendingScheduleForm overrides={inputs.spendingOverrides} onChange={(spendingOverrides) => setInputs((current) => ({ ...current, spendingOverrides }))} />,
       },
     ],
-    [actualSpendingHint, dataMode, effectiveMonthlySpending, inputs, setInputs],
+    [actualSpendingHint, dataMode, effectiveMonthlySpending, inputs, projectedEndDate, projectionYears, setInputs],
   )
 
   return (

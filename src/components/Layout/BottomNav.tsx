@@ -45,7 +45,7 @@ export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
       {moreOpen ? <button type="button" aria-label="Close more menu" className="fixed inset-0 z-30 bg-transparent lg:hidden" onClick={() => setMoreOpen(false)} /> : null}
 
       {moreOpen ? (
-        <div className="fixed inset-x-4 bottom-[calc(70px+0.75rem+env(safe-area-inset-bottom))] z-40 rounded-xl border border-border/70 bg-background/95 p-1.5 shadow-2xl shadow-black/10 backdrop-blur-sm lg:hidden">
+        <div className="fixed inset-x-4 bottom-[calc(64px+0.75rem+env(safe-area-inset-bottom))] z-40 rounded-xl border border-border/70 bg-background/95 p-1.5 shadow-2xl shadow-black/10 backdrop-blur-sm lg:hidden">
           {moreItems.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
@@ -92,12 +92,12 @@ export default function BottomNav({ activeTab, onSelectTab }: BottomNavProps) {
                   onSelectTab(item.id)
                 }}
                 className={cn(
-                  "relative flex h-[70px] flex-1 items-center justify-center rounded-xl text-muted-foreground transition-colors",
-                  isActive && "text-foreground",
+                  "flex h-[64px] flex-1 flex-col items-center justify-center gap-1 rounded-xl text-muted-foreground transition-colors",
+                  isActive && "font-semibold text-foreground",
                 )}
               >
                 <Icon className={cn("h-[22px] w-[22px]", isActive && "stroke-[2.5]")} />
-                {isActive ? <span className="absolute bottom-2 h-1.5 w-1.5 rounded-full bg-foreground" /> : null}
+                <span className="text-[10px] leading-none">{item.label}</span>
               </button>
             )
           })}

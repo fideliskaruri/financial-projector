@@ -9,6 +9,7 @@ export const DEFAULT_INPUTS: AllInputs = {
     mmfMonthlyInterestRate: 1,
     startingBalance: 404_000,
     startDate: { month: 6, year: 2026 },
+    projectionYears: 5,
     endDate: { month: 12, year: 2030 },
   },
   recurringInflows: [

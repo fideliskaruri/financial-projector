@@ -2,11 +2,10 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { usePrivacy } from "@/contexts/PrivacyContext"
 import type { MonthlyRow } from "@/engine/types"
+import { formatCompactKES } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
-const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
-const compact = new Intl.NumberFormat("en-KE", { notation: "compact", maximumFractionDigits: 1 })
 
 interface InflowBreakdownChartProps {
   rows: MonthlyRow[]
@@ -53,10 +52,11 @@ export default function InflowBreakdownChart({ rows }: InflowBreakdownChartProps
               <AreaChart data={data} margin={{ left: 12, right: 12, top: 8, bottom: 8 }}>
                 <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="date" tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} minTickGap={28} />
-                <YAxis tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} width={72} tickFormatter={(value) => (balanceHidden ? "•••" : compact.format(Number(value)))} />
+                <YAxis tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} width={72} tickFormatter={(value) => maskAmount(formatCompactKES(Number(value)), balanceHidden)} />
                 <Tooltip
+                  trigger="click"
                   contentStyle={{ backgroundColor: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 16 }}
-                  formatter={(value, name) => [maskAmount(currency.format(Number(value ?? 0)), balanceHidden), String(name)]}
+                  formatter={(value, name) => [maskAmount(formatCompactKES(Number(value ?? 0)), balanceHidden), String(name)]}
                 />
                 <Area type="monotone" dataKey="salary" stackId="stack" stroke="var(--color-chart-1)" fill="var(--color-chart-1)" fillOpacity={0.55} />
                 <Area type="monotone" dataKey="espp" stackId="stack" stroke="var(--color-chart-2)" fill="var(--color-chart-2)" fillOpacity={0.55} />

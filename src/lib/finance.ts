@@ -45,6 +45,15 @@ export function formatKES(amount: number) {
   return currencyFormatter.format(amount)
 }
 
+export function formatCompactKES(amount: number) {
+  return new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency: "KES",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(amount)
+}
+
 function pad(value: number) {
   return String(value).padStart(2, "0")
 }

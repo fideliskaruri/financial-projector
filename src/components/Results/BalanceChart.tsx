@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { usePrivacy } from "@/contexts/PrivacyContext"
 import { monthYearToString } from "@/data/defaults"
 import type { Milestone, MonthlyRow } from "@/engine/types"
+import { formatCompactKES } from "@/lib/finance"
 import { maskAmount } from "@/lib/mask"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
@@ -15,8 +16,6 @@ import {
   YAxis,
 } from "recharts"
 
-const currency = new Intl.NumberFormat("en-KE", { style: "currency", currency: "KES", maximumFractionDigits: 0 })
-const currencyCompact = new Intl.NumberFormat("en-KE", { notation: "compact", maximumFractionDigits: 1 })
 
 export interface BalanceChartSeries {
   name: string
@@ -79,9 +78,10 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
             tickLine={false}
             axisLine={false}
             width={70}
-            tickFormatter={(value) => (balanceHidden ? "•••" : currencyCompact.format(Number(value)))}
+            tickFormatter={(value) => maskAmount(formatCompactKES(Number(value)), balanceHidden)}
           />
           <Tooltip
+            trigger="click"
             allowEscapeViewBox={{ x: true, y: true }}
             wrapperStyle={{ outline: "none", maxWidth: "calc(100vw - 2rem)", pointerEvents: "none" }}
             contentStyle={{
@@ -93,7 +93,7 @@ export default function BalanceChart({ rows, milestones = [], comparisonRows, co
               maxWidth: "calc(100vw - 2rem)",
               padding: isMobile ? "0.5rem" : undefined,
             }}
-            formatter={(value) => [maskAmount(currency.format(Number(value ?? 0)), balanceHidden), "Balance"]}
+            formatter={(value) => [maskAmount(formatCompactKES(Number(value ?? 0)), balanceHidden), "Balance"]}
             labelStyle={{ color: "var(--color-muted-foreground)", fontSize: 11 }}
           />
           {milestones
