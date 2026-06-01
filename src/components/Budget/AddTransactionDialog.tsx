@@ -6,8 +6,6 @@ import type { SpendingCategory, Transaction } from "@/db/database"
 import { addTransaction, updateTransaction } from "@/hooks/useBudget"
 import { getTodayIsoDate } from "@/lib/finance"
 import { cn } from "@/lib/utils"
-import { Plus } from "lucide-react"
-import { motion } from "motion/react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -15,9 +13,8 @@ interface AddTransactionDialogProps {
   categories: SpendingCategory[]
   initialTransaction?: Transaction
   initialCategoryId?: string
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  hideFloatingTrigger?: boolean
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 function createDraft(categories: SpendingCategory[], initialTransaction?: Transaction, initialCategoryId?: string) {
@@ -29,34 +26,18 @@ function createDraft(categories: SpendingCategory[], initialTransaction?: Transa
   }
 }
 
-export default function AddTransactionDialog({ categories, initialTransaction, initialCategoryId, open, onOpenChange, hideFloatingTrigger = false }: AddTransactionDialogProps) {
-  const [internalOpen, setInternalOpen] = useState(false)
+export default function AddTransactionDialog({ categories, initialTransaction, initialCategoryId, open, onOpenChange }: AddTransactionDialogProps) {
   const [draft, setDraft] = useState(() => createDraft(categories, initialTransaction, initialCategoryId))
   const [submitting, setSubmitting] = useState(false)
 
-  const controlled = open !== undefined
-  const isOpen = controlled ? open : internalOpen
   const dialogTitle = initialTransaction ? "Edit transaction" : "Add transaction"
   const submitLabel = initialTransaction ? "Save" : "Add"
-
-  const setDialogOpen = (nextOpen: boolean) => {
-    if (!controlled) {
-      setInternalOpen(nextOpen)
-    }
-
-    onOpenChange?.(nextOpen)
-  }
-
-  const openDialog = () => {
-    setDraft(createDraft(categories, initialTransaction, initialCategoryId))
-    setDialogOpen(true)
-  }
 
   const resetDraft = () => setDraft(createDraft(categories, initialTransaction, initialCategoryId))
 
   const closeDialog = () => {
     resetDraft()
-    setDialogOpen(false)
+    onOpenChange(false)
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -95,7 +76,7 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
         toast.success("Transaction added")
       }
 
-      setDialogOpen(false)
+      onOpenChange(false)
       resetDraft()
     } catch {
       toast.error("Unable to save transaction")
@@ -105,63 +86,43 @@ export default function AddTransactionDialog({ categories, initialTransaction, i
   }
 
   return (
-    <>
-      {!hideFloatingTrigger ? (
-        <motion.div
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-30 sm:right-6 lg:bottom-6 lg:right-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.15 }}
-        >
-          <Button type="button" size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={openDialog} aria-label="Add transaction">
-            <Plus className="h-5 w-5" />
+    <BottomSheet open={open} onClose={closeDialog} title={dialogTitle}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Amount</label>
+          <Input value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" placeholder="0" className="h-11 text-base" />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Category</label>
+          <Select value={draft.categoryId} onChange={(event) => setDraft((current) => ({ ...current, categoryId: event.target.value }))} className="h-11 text-base">
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Description</label>
+          <Input value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Description" className="h-11 text-base" />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Date</label>
+          <Input value={draft.date} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} type="date" className="h-11 text-base" />
+        </div>
+
+        <div className={cn("flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end", submitting && "opacity-80")}>
+          <Button type="button" variant="outline" onClick={closeDialog} className="min-h-11 w-full sm:w-auto">
+            Cancel
           </Button>
-        </motion.div>
-      ) : null}
-
-      <BottomSheet open={isOpen} onClose={closeDialog} title={dialogTitle}>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Amount</label>
-                  <Input value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} inputMode="decimal" type="number" min="0" step="0.01" placeholder="0" className="h-11 text-base" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select value={draft.categoryId} onChange={(event) => setDraft((current) => ({ ...current, categoryId: event.target.value }))} className="h-11 text-base">
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Description</label>
-                  <Input value={draft.description} onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} placeholder="Description" className="h-11 text-base" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Date</label>
-                  <Input value={draft.date} onChange={(event) => setDraft((current) => ({ ...current, date: event.target.value }))} type="date" className="h-11 text-base" />
-                </div>
-
-                <div className={cn("flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end", submitting && "opacity-80")}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={closeDialog}
-                    className="min-h-11 w-full sm:w-auto"
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={submitting || categories.length === 0} className="min-h-11 w-full sm:w-auto">
-                    {submitLabel}
-                  </Button>
-                </div>
-        </form>
-      </BottomSheet>
-    </>
+          <Button type="submit" disabled={submitting || categories.length === 0} className="min-h-11 w-full sm:w-auto">
+            {submitLabel}
+          </Button>
+        </div>
+      </form>
+    </BottomSheet>
   )
 }

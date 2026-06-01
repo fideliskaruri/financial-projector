@@ -156,7 +156,6 @@ export default function TransactionList() {
         initialTransaction={editingTransaction}
         open={Boolean(editingTransaction)}
         onOpenChange={(open) => !open && setEditingTransaction(undefined)}
-        hideFloatingTrigger
       />
     </div>
   )

@@ -407,7 +407,7 @@ export default function App() {
               ) : null}
             </ErrorBoundary>
           </main>
-          <AddTransactionDialog key={addTransactionDialogKey} categories={categories} open={addTransactionOpen} onOpenChange={setAddTransactionOpen} hideFloatingTrigger />
+          <AddTransactionDialog key={addTransactionDialogKey} categories={categories} open={addTransactionOpen} onOpenChange={setAddTransactionOpen} />
         </div>
       </div>
     </PrivacyContext.Provider>

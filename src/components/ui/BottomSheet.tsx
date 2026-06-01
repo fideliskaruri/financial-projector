@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 
 interface BottomSheetProps {
   open: boolean
@@ -11,11 +11,14 @@ interface BottomSheetProps {
 }
 
 export default function BottomSheet({ open, onClose, title, children }: BottomSheetProps) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (!open) {
       return
     }
 
+    const previouslyFocused = document.activeElement as HTMLElement | null
     const originalOverflow = document.body.style.overflow
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -26,9 +29,18 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
     document.body.style.overflow = "hidden"
     window.addEventListener("keydown", handleKeyDown)
 
+    const focusTimer = window.setTimeout(() => {
+      const target = dialogRef.current?.querySelector<HTMLElement>(
+        "input, select, textarea, button, [href], [tabindex]:not([tabindex='-1'])",
+      )
+      target?.focus()
+    }, 0)
+
     return () => {
       document.body.style.overflow = originalOverflow
       window.removeEventListener("keydown", handleKeyDown)
+      window.clearTimeout(focusTimer)
+      previouslyFocused?.focus?.()
     }
   }, [onClose, open])
 
@@ -47,6 +59,7 @@ export default function BottomSheet({ open, onClose, title, children }: BottomSh
             onClick={onClose}
           />
           <motion.div
+            ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby={title ? "bottom-sheet-title" : undefined}
