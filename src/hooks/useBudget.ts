@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useLiveQuery } from "dexie-react-hooks"
 
 import { db, type MonthlySnapshot, type RecurringBill, type SpendingCategory, type Transaction } from "@/db/database"
@@ -91,13 +91,24 @@ export function useBills() {
 export function useMonthSummary(month: string) {
   useSeededDatabase()
 
-  return useLiveQuery(async () => {
+  const summary = useLiveQuery(async () => {
     await ensureDefaultCategories()
     const [categories, transactions] = await Promise.all([db.categories.toArray(), db.transactions.toArray()])
-    const summary = buildMonthSummary(categories, transactions, month)
-    await syncSnapshot(summary)
-    return summary
+    return buildMonthSummary(categories, transactions, month)
   }, [month])
+
+  const lastSnapshotRef = useRef<string>("")
+
+  useEffect(() => {
+    if (!summary) return
+    const key = `${summary.month}-${summary.totalSpent}-${summary.totalBudgeted}`
+    if (key !== lastSnapshotRef.current) {
+      lastSnapshotRef.current = key
+      void syncSnapshot(summary)
+    }
+  }, [summary])
+
+  return summary
 }
 
 export async function addTransaction(transaction: Omit<Transaction, "id"> & { id?: string }) {
