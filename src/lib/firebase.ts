@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app"
-import { getAuth, GithubAuthProvider } from "firebase/auth"
+import { browserLocalPersistence, getAuth, GithubAuthProvider, setPersistence } from "firebase/auth"
 
 const firebaseConfig = {
   apiKey: "AIzaSyCLlnT4iogBAkwadQEfL3LS-rZD8G-LlpY",
@@ -14,4 +14,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 
 export const auth = getAuth(app)
+// Persist the session in localStorage so it survives reloads/redirects on mobile.
+void setPersistence(auth, browserLocalPersistence)
+
 export const githubProvider = new GithubAuthProvider()

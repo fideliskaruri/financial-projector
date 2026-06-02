@@ -2,7 +2,19 @@ import { getRedirectResult, onAuthStateChanged, signInWithPopup, signInWithRedir
 import { useEffect, useRef, useState } from "react"
 import { auth, githubProvider } from "@/lib/firebase"
 
-const isMobile = () => /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+const REDIRECT_FALLBACK_CODES = new Set([
+  "auth/popup-blocked",
+  "auth/cancelled-popup-request",
+  "auth/operation-not-supported-in-this-environment",
+  "auth/web-storage-unsupported",
+])
+
+function getAuthErrorCode(error: unknown): string | undefined {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    return String((error as { code: unknown }).code)
+  }
+  return undefined
+}
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -72,11 +84,22 @@ export function useAuth() {
     }
   }, [])
 
-  const signInWithGitHub = () => {
-    if (isMobile()) {
-      return signInWithRedirect(auth, githubProvider)
+  const signInWithGitHub = async () => {
+    try {
+      await signInWithPopup(auth, githubProvider)
+    } catch (error) {
+      const code = getAuthErrorCode(error)
+      // Popups can be blocked or unsupported on some mobile browsers — fall back to redirect.
+      if (code && REDIRECT_FALLBACK_CODES.has(code)) {
+        await signInWithRedirect(auth, githubProvider)
+        return
+      }
+      // User dismissed the popup — not an error worth surfacing.
+      if (code === "auth/popup-closed-by-user") {
+        return
+      }
+      throw error
     }
-    return signInWithPopup(auth, githubProvider)
   }
 
   const logout = () => signOut(auth)
